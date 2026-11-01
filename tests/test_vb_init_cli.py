@@ -621,6 +621,21 @@ class TestKeyboardInterrupt(Base):
         self.assertIn("INTERRUPTED", out2)
         self.assert_no_files()
 
+    def test_r9f5_interrupt_after_write_does_not_claim_nothing_written(self):
+        import builtins
+
+        def pr(*a, **k):
+            if a and str(a[0]).startswith("标准来源"):
+                raise KeyboardInterrupt
+            return builtins.print(*a, **k)
+        with mock.patch.object(vb_init, "print", pr, create=True):
+            rc, out = self.init("--apply")
+        self.assertEqual(rc, 130, out)
+        self.assertIn("INTERRUPTED", out)
+        self.assertNotIn("未写入文件", out)
+        self.assertIn("已写入", out)
+        self.assertTrue(os.path.isfile(os.path.join(self.proj, ".vibecoding", "config.json")))
+
 
 class TestR4N7TrustedStandard(Base):
     """R4-N7：信任判据是技能自带的固定清单哈希，不是被校验目录自带的脚本。"""

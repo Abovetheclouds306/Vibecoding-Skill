@@ -923,6 +923,7 @@ def _main(argv: list[str]) -> int:
                 print("== 结论: INTERRUPTED（未完成，已回滚，退出码 130）==")
             return 130
 
+        _WRITE_PHASE["done"] = True   # R9-F5：写入已提交；此后的中断不得声称“未写入文件”
         result["steps"].append(plan)
         result["steps"].append({"file": ".vibecoding/config.json", "status": state_cfg})
         result["steps"].append({"file": ".vibecoding/AGENTS.block.md", "status": state_block})
@@ -987,14 +988,22 @@ def _main(argv: list[str]) -> int:
 #    "messages": [<原散文逐行>], "mode", "project", "steps": [], "needs_decision": false, "block_updated": false}
 # stdout 上不再出现 JSON 以外的散文。
 _JSON_RESULT: list = []
+_WRITE_PHASE = {"done": False}
+
+
+def _interrupt_message() -> str:
+    if _WRITE_PHASE["done"]:
+        return "INTERRUPTED: 初始化被中断（中断发生在写入阶段完成之后：本次计划的文件已写入、未回滚，仅输出未完成；可重跑 --apply 核对，幂等）。退出码 130"
+    return "INTERRUPTED: 初始化被中断，未完成（中断发生在写入阶段之外，未写入文件）。退出码 130"
 
 
 def main(argv: list[str]) -> int:
+    _WRITE_PHASE["done"] = False
     if "--json" not in argv:
         try:
             return _main(argv)
-        except KeyboardInterrupt:  # 写入阶段之外的中断（预检/校验时）：尚未写入
-            print("INTERRUPTED: 初始化被中断，未完成（中断发生在写入阶段之外，未写入文件）。退出码 130")
+        except KeyboardInterrupt:  # 写入阶段之外的中断：预检/校验时（未写入）或写入完成后（已写入）
+            print(_interrupt_message())
             return 130
     del _JSON_RESULT[:]
     buf = io.StringIO()
@@ -1011,7 +1020,7 @@ def main(argv: list[str]) -> int:
             rc = exc.code if isinstance(exc.code, int) else 2
             usage_error = True
     except KeyboardInterrupt:
-        buf.write("INTERRUPTED: 初始化被中断，未完成（中断发生在写入阶段之外，未写入文件）。\n")
+        buf.write(_interrupt_message() + "\n")
         rc = 130
     except Exception as exc:  # noqa: BLE001 — JSON 模式下也要给出契约内的失败结果
         buf.write("ERROR: 未预期异常 %s: %s\n" % (type(exc).__name__, exc))
