@@ -226,6 +226,19 @@ class TestR10TrustWalk(unittest.TestCase):
         self.put("tools/check_evidence.py", b"tampered\n")
         self.assertIsNone(self.trust.read_verified(self.std, "tools/check_evidence.py"))
 
+    def test_read_verified_requires_pinned_manifest(self):   # 杀“只比对清单登记值、不比对固定清单”
+        import hashlib
+        data = b"tampered\n"
+        self.put("tools/check_evidence.py", data)
+        mp = os.path.join(self.std, "MANIFEST.sha256")
+        with open(mp, "rb") as fh:
+            lines = fh.read().decode("utf-8").splitlines()
+        new = [("%s  tools/check_evidence.py" % hashlib.sha256(data).hexdigest())
+               if l.strip().endswith("tools/check_evidence.py") else l for l in lines]
+        with open(mp, "wb") as fh:
+            fh.write(("\n".join(new) + "\n").encode("utf-8"))
+        self.assertIsNone(self.trust.read_verified(self.std, "tools/check_evidence.py"))
+
 
 class TestR10N2Toctou(GateTrustBase):
     def test_swap_after_verification_not_executed(self):
@@ -247,6 +260,35 @@ class TestR10N2Toctou(GateTrustBase):
         self.assertFalse(os.path.exists(self.marker), "校验后被替换的脚本被执行了:\n" + out)
         self.assertEqual(rc, 1, out)
         self.assertIn("结构校验=FAIL", out)
+
+
+class TestR11ExecIsolation(GateTrustBase):
+    """纵深防御：即使信任校验被绕过（mock 为通过），执行也只用私有副本 + -I -B。"""
+    def run_bypassed(self, std, env):
+        mod = load_gate()
+        buf = io.StringIO()
+        with mock.patch.object(mod.vb_trust, "verify_pinned", lambda d: (0, [])), \
+                mock.patch.dict(os.environ, dict(env, VB_TEST_MARKER=self.marker)), contextlib.redirect_stdout(buf):
+            rc = mod.main(["--project", self.proj, "--task", "T1", "--standard", std,
+                           "--verify", '"%s" "%s"' % (sys.executable, self.ok)])
+        return rc, buf.getvalue()
+
+    def test_located_dir_pyc_not_used_even_if_trust_bypassed(self):
+        std = real_copy(self.tmp)
+        plant_pyc(std, "argparse")
+        rc, out = self.run_bypassed(std, {})
+        self.assertFalse(os.path.exists(self.marker), "被定位目录的 .pyc 被执行了:\n" + out)
+        self.assertIn("门禁: PASS", out)   # 正对照：私有副本确实运行且正常
+
+    def test_pythonpath_ignored_by_isolated_mode(self):
+        std = real_copy(self.tmp)
+        evil = os.path.join(self.tmp, "evilpath")
+        os.makedirs(evil)
+        with open(os.path.join(evil, "argparse.py"), "w", encoding="utf-8") as fh:
+            fh.write("import os\nopen(os.environ['VB_TEST_MARKER'], 'w').close()\n")
+        rc, out = self.run_bypassed(std, {"PYTHONPATH": evil})
+        self.assertFalse(os.path.exists(self.marker), "PYTHONPATH 中的模块被导入了（未用 -I）:\n" + out)
+        self.assertIn("门禁: PASS", out)
 
 
 class TestR10N4GateInterrupt(unittest.TestCase):
