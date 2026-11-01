@@ -32,6 +32,11 @@
 | R10-a | 安全模型（R10-N1） | 外部标准目录的无源 .pyc 曾可被执行；R11 改为只执行已核对字节的私有副本（-I -B），vb_trust 拒绝 __pycache__ 外的 .pyc | 高（已修待复核） | 公开前写 SECURITY 说明：信任根、--standard 语义、__pycache__ 容忍、--python 由调用者信任 |
 | R10-b | TOCTOU（R10-N2） | 校验与执行分离的窗口已通过内存字节+私有副本消除；私有临时目录对同一用户进程仍可写 | 中 | 在 SECURITY 说明中写明威胁模型边界 |
 
+| R11-N1 | 用户文档信任根 | 默认校验命令统一为 vb_trust；verify_manifest 仅为自检 | 中（R12 已修） | 公开树沿用 |
+| R11-N3 | 安全文档 | SECURITY.md 新增：--python/--verify 调用者信任、临时目录 ACL、TOCTOU、__pycache__、无原子性 | 中（R12 已修） | 公开树沿用 |
+| R11-N4 | 相对 --evidence | 已修（按 cwd 解析） | 低（R12 已修） | — |
+| R12-a | 公开树 | 在仓库外单独生成（不含评审/私有内容）；vendor 待 Standard v1.2.8 | 阻断公开 | 见 Standard v1.2.8 提案 |
+
 ## 已在本轮修复的平凡问题
 
 - 拆仓导致的路径/命令：`AGENTS.md`、`vibecoding/README.md` 安装命令、`TODO.md` 路径说明、`tests/test_install_skill.py` 文档串（提交 2550597）。

@@ -26,7 +26,6 @@
 ```bash
 python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard
 # 期望：== 可信校验: PASS（固定清单 v1.2.7；通过 33 / 失败 0 / 缺失 0 / 未登记 0）==，退出码 0
-python vibecoding/vendor/vibecoding-standard/tools/verify_manifest.py   # 自洽性（辅助）
 git ls-tree -r HEAD -- vibecoding/vendor/vibecoding-standard            # 与下表 blob 对照
 git -C <Vibecoding-Standard> ls-tree -r 53eb3917765a45582034a0af7f1ae33a7342c3b9 skill/vibecoding/vendor/vibecoding-standard
 ```

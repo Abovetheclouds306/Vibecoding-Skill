@@ -64,8 +64,9 @@ python <skill>/scripts/vb_handoff.py --project <项目> --show
 ```bash
 python scripts/vb_init.py --project <空目录> --skip-standard-check   # 冒烟（标记为未验证，不是签收声明）
 python scripts/vb_trust.py vendor/vibecoding-standard                # 标准副本 vs 固定 v1.2.7 清单（可信判据）
-python vendor/vibecoding-standard/tools/verify_manifest.py           # 标准副本自带校验（仅自洽性）
 ```
+
+可信判据只有 `vb_trust.py`（固定清单 SHA-256）。标准副本自带的 `tools/verify_manifest.py` 只是 Standard 的自洽性自检，**不是信任根**，不能证明副本是签收版本；也不要在已安装目录里就地运行它（会生成 `__pycache__`）。安全边界见仓库根 `SECURITY.md`。
 
 ## 五、退出码
 
@@ -81,3 +82,11 @@ python vendor/vibecoding-standard/tools/verify_manifest.py           # 标准副
 - 不支持无人值守持续运行（无守护进程、不轮询、不自动提交）。
 - `vb_gate.py` 的 `--verify` 命令按宿主 shell 语义执行，跨平台写法请自行保证。
 - Cursor 与 WorkBuddy 的真实自动激活在本 POC 中未实测（见 `references/06-platform-capabilities.md`）。
+
+## 七、卸载
+
+安装器从不删除文件；卸载是手工操作：
+
+1. 删除安装目标技能目录（例如 `<项目>/.claude/skills/vibecoding/` 或 `~/.claude/skills/vibecoding/`，以安装时输出的目标路径为准），其中包括 `.vibecoding-install.json` 安装清单。删除前确认该目录里没有你自己放进去的文件。
+2. 若曾在项目里运行 `vb_init.py --apply`：手工删除项目中的 `.vibecoding/`（含证据与日志，先确认是否需要保留），并从 `AGENTS.md` 中删除 `<!-- vibecoding:begin` … `<!-- vibecoding:end -->` 标记块（vb_init 从不编辑 CLAUDE.md）。
+3. 用 `git status` 确认只删除了预期内容。
