@@ -981,17 +981,26 @@ def main(argv: list[str]) -> int:
     del _JSON_RESULT[:]
     buf = io.StringIO()
     usage_error = False
+    help_shown = False
     try:
         with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
             rc = _main(argv)
-    except SystemExit as exc:  # argparse 用法错误
-        rc = exc.code if isinstance(exc.code, int) else 2
-        usage_error = True
+    except SystemExit as exc:  # argparse：--help（code 0）或用法错误
+        if exc.code in (0, None):
+            rc = 0
+            help_shown = True
+        else:
+            rc = exc.code if isinstance(exc.code, int) else 2
+            usage_error = True
     except Exception as exc:  # noqa: BLE001 — JSON 模式下也要给出契约内的失败结果
         buf.write("ERROR: 未预期异常 %s: %s\n" % (type(exc).__name__, exc))
         rc = 1
     lines = [l.rstrip() for l in buf.getvalue().splitlines() if l.strip()]
-    if _JSON_RESULT and _JSON_RESULT[-1].get("rc") == rc and not usage_error:
+    if help_shown:
+        # --json --help：明确标记为帮助输出，不是一次初始化结果
+        payload = {"status": "ok", "kind": "help", "help": True, "rc": 0, "error": "", "messages": lines,
+                   "mode": "help", "project": None, "steps": [], "needs_decision": False, "block_updated": False}
+    elif _JSON_RESULT and _JSON_RESULT[-1].get("rc") == rc and not usage_error:
         payload = _JSON_RESULT[-1]
         if lines:
             payload["messages"] = lines

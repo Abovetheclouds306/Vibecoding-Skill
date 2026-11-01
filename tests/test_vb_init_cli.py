@@ -115,6 +115,14 @@ class TestJsonFailureContract(Base):
         data = self.assert_json_contract(rc, out)
         self.assertEqual(data["status"], "usage_error")
 
+    def test_json_help_is_ok_and_marked_as_help(self):
+        rc, out = run_main(["--json", "--help"])
+        self.assertEqual(rc, 0, out)
+        data = json.loads(out)
+        self.assertEqual((data["status"], data["rc"], data.get("help"), data.get("kind")), ("ok", 0, True, "help"), out)
+        self.assertTrue(any("--apply" in m for m in data["messages"]), out)
+        self.assertEqual(data["steps"], [])
+
     def test_success_has_status_ok(self):
         rc, out = self.init("--apply", "--json")
         self.assertEqual(rc, 0, out)
