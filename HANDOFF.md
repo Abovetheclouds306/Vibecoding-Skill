@@ -118,4 +118,13 @@
 - 判别（基线 2550597 → HEAD）：R4-N7 默认/自校验自定义/skip 声明、json_help、安装器篡改 vendor/未登记文件在基线 FAIL；KeyboardInterrupt 用例在基线逃逸中断；R8-N1 与 extra_file 为两边均过的守护测试。
 - 变异（19 个）：H、N1a、N1b、N2、N6、E2、T1、T2、T3、S1、S2、S3、HP、K1、K2、K3、I1、I2 全 KILLED；I3（安装器目标复检恒真）SURVIVED，见 TODO R9-RES-2。
 - 建议 R9 复核另做变异：vb_trust 文件计数/未登记文件判定置空；vb_trust 改为调用被校验目录 verify_manifest；安装器 load_trust 缺失时放行；JSON help kind 字段删除。
-- NOT_RUN：文件级符号链接用例（无权限）；user scope 安装（禁止触碰真实技能目录）；Actions/CI（未启用）。
+- NOT_RUN：文件级符号链接用例（无权限）；user scope 安装（禁止触碰真实技能目录）；CI（更正，R9-F9：仓库 Actions 处于启用状态、allowed_actions=all，但仓库内没有任何 workflow，因此没有 CI 运行；未改仓库设置）。
+
+## R10 交接（R9 复核发现修复；开发者自测，非独立 Reviewer 结论）
+- 复核范围：07eb778..HEAD（提交 791ac43 F1、9a96ac1 F2、7ce18bf F3、1a2ef91 F5、00c0054 F4/F6/F7、0a0bc5b F7 测试补强，及本文档提交）。
+- 全量：`python -m unittest discover -s tests -p "test_*.py"` → rc0，134 tests OK（skipped=1）。vendor：verify_manifest rc0 PASS 33/0/0/0；vb_trust rc0 PASS。
+- F2：`git clone -c core.autocrlf=true --no-checkout` 后检出 HEAD：0 个 CRLF 文件，vb_trust rc0，安装 rc0、重装 rc0；对照 07eb778：58 个 CRLF 文件（vendor 35），vb_trust rc1，安装 rc1。
+- 判别（新测试 vs 07eb778 代码）：R9-F1 4 例中 3 例 FAIL（真实副本守护例两边过）；F4 例 FAIL；F5 例 FAIL；F6 例在旧代码 KeyboardInterrupt 逃逸、进程中断。I1/I3/T5 为守护/杀变异测试，旧代码行为本就正确。
+- 变异（11 个，全 KILLED）：G1 check-standard 恒 0、F1a 跳过信任校验、F1b 拒绝后仍执行、I1a 忽略 trust 缺失、I1b load_trust 缺失返回放行桩、I3 目标复检恒真、T5 vb_trust 忽略缺失文件、F4 恢复文案去掉 --force、F5 标志不置位、F6a 去掉外层中断处理、F6b 不记录已写入。
+- NOT_RUN：同 R9（文件级符号链接、user scope、CI）；非 Windows 干净机器。
+- 残余：见 TODO R10-RES-1（TOCTOU）、R10-RES-2（pyc）、R9-RES-1（空目录）。

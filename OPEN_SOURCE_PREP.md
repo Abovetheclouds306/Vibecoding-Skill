@@ -21,6 +21,14 @@
 | I2 | 重装 | 安装器不删除文件，源中删除的文件在目标残留（设计如此，`tools/install_skill.py` 文档串）；无卸载命令 | 低 | 文档补卸载说明或提供卸载脚本 |
 | A1 | 自动激活范围 | `SKILL.md:3` description 很宽（"starting or resuming development work in a repository"），可能在任何仓库被宿主自动激活；`vibecoding/README.md:47` 已声明"不保证激活"；`README.md:78`/`06-platform-capabilities.md:41,52` Cursor/WorkBuddy 自动激活 NOT_RUN | 中 | 公开前收窄 description 或明确说明激活范围 |
 
+| R9-a | 换行策略 | 已加 `.gitattributes`（`* text=auto eol=lf`，`vibecoding/vendor/** -text`，R9-F2）；公开前确认所有贡献者/平台遵守，vendor 字节必须原样 | 中 | 保持；CI 中加 vb_trust 检查 |
+| R9-b | 仓库入口 | 仓库根无 `README.md`（说明在 `vibecoding/README.md`） | 中 | 公开前加根 README |
+| R9-c | Actions | 仓库 Actions 启用、allowed_actions=all，但无 workflow | 中 | Owner 决定：加 CI workflow 或收紧/关闭 Actions |
+| R9-d | 私有评审痕迹 | `TODO.md`、`HANDOFF.md`、`OPEN_SOURCE_PREP.md` 含 R4–R10 评审 ID 与内部提交 SHA | 中 | 公开前精简或移出（同 P1） |
+| R9-e | 中断恢复 | 恢复需“加 --force 重跑”（R9-F4 已更正文档）；无跨文件原子性，中断后残留部分文件 | 低 | 公开文档保留该说明 |
+| R9-f | 再分发许可 | 需 Standard 所有者书面确认允许随技能再分发 vendor 副本（同 L2） | 阻断公开 | Owner 决定 |
+| R9-g | 卸载 | 无卸载说明/命令（同 I2）：手工删除目标技能目录（含 `.vibecoding-install.json`）即可；项目内 `.vibecoding/` 与 AGENTS 注入块需手工移除 | 低 | 公开前写入 README |
+
 ## 已在本轮修复的平凡问题
 
 - 拆仓导致的路径/命令：`AGENTS.md`、`vibecoding/README.md` 安装命令、`TODO.md` 路径说明、`tests/test_install_skill.py` 文档串（提交 2550597）。

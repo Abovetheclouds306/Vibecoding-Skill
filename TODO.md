@@ -51,4 +51,17 @@
 | VEN-1 | vendor 来源 | DOCS | 10cef5d；34/34 blob 与 53eb391 一致 |
 | OSP-1 | 开源准备审计 | 仅发现，未处理 | b826d1f；L1–L3/P1–P5/D1–D2/V1–V3/I1–I2/A1，公开前需 Owner 决定 |
 | R9-RES-1 | 中断回滚后可能残留空目录（快照只比文件） | OPEN | 已知残余 |
-| R9-RES-2 | 安装器目标复检无判别测试（变异 I3 存活；源预检已先拦截） | OPEN | 纵深防御，难以构造复制过程中损坏 |
+| R9-RES-2 | 安装器目标复检无判别测试（变异 I3 存活） | 自测 PASS（R10） | 更正：原“难以构造”不成立——R9 复核用“在已安装 vendor/templates/ 放用户文件后 --force”即可构造；R10 已加该用例，I3 KILLED |
+## R10（R9 独立复核发现修复，开发者自测，非 Reviewer 结论）
+| ID | 事项 | 状态 | 说明 |
+|---|---|---|---|
+| R9-F1 | vb_gate 执行未校验标准的 check_evidence.py | 自测 PASS | 791ac43；先 vb_trust 固定清单校验，不过则不执行、结构校验 FAIL；--standard 与 VB_STANDARD_HOME 均覆盖 |
+| R9-F2 | autocrlf=true 克隆导致 vendor 校验失败 | 自测 PASS | 9a96ac1；.gitattributes（eol=lf，vendor -text），renormalize 无 blob 变化 |
+| R9-F3 | 文档/帮助与信任模型不一致 | DOCS | 7ce18bf |
+| R9-F4 | 恢复说明“重跑同一命令”实际 rc2 | 自测 PASS | 00c0054；改为“加 --force 重跑”，测试固定 rc2/rc0 行为 |
+| R9-F5 | 写入后中断仍称“未写入文件” | 自测 PASS | 1a2ef91 |
+| R9-F6 | 写入循环外中断出 traceback | 自测 PASS | 00c0054；INTERRUPTED rc130，区分写入前/后 |
+| R9-F7 | 未被杀死变异 I1/I3/T5/G1 | 自测 PASS | 791ac43、00c0054、0a0bc5b |
+| R9-F9 | Actions 描述不实 | DOCS | 见 HANDOFF R10 段；未改仓库设置 |
+| R10-RES-1 | vb_trust 校验与执行 check_evidence 之间存在 TOCTOU 窗口 | OPEN | 本地攻击者需能在毫秒窗口内改写标准目录 |
+| R10-RES-2 | vb_trust 忽略 __pycache__/*.pyc（R9-F8，info） | OPEN | 执行时 PYTHONDONTWRITEBYTECODE 不能阻止读取既有 pyc 的理论可能，未处理 |
