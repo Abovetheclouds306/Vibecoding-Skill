@@ -526,7 +526,7 @@ class TestR9Findings(Base):
         with mock.patch.object(inst, "write_file", wf):
             rc, out = self.install()
         self.assertEqual(rc, 130, out)
-        self.assertIn("--force", out)
+        self.assertIn("并加 --force", out)
         rc2, out2 = self.install()
         self.assertEqual(rc2, 2, out2)       # 文档如实说明：不加 --force 会 NEED_DECISION
         rc3, out3 = self.install("--force")
@@ -566,6 +566,13 @@ class TestR9Findings(Base):
         self.assertNotIn("未写入任何文件", out)
         self.assertNotIn("安装完成", out)
         self.assertTrue(os.path.exists(self.dest))
+
+    def test_i1_load_trust_missing_returns_none(self):
+        empty = os.path.join(self.tmp, "no-skill", "tools")
+        os.makedirs(empty)
+        self.assertIsNone(inst.load_trust(empty))
+        self.write(os.path.join(self.tmp, "no-skill", "vibecoding", "scripts", "vb_trust.py"), "x = 1\n")
+        self.assertIsNone(inst.load_trust(empty))   # 无 verify_pinned 的模块同样不可用
 
     def test_i1_missing_trust_module_refused(self):
         with mock.patch.object(inst, "load_trust", lambda here: None):
