@@ -657,6 +657,28 @@ class TestR4N7TrustedStandard(Base):
         self.assertEqual(rc, 1, out)
         self.assertEqual(snapshot(self.proj), {})
 
+    def test_self_consistent_tamper_with_regenerated_manifest_refused(self):
+        """篡改文件并同步改写 MANIFEST.sha256（自带校验会 PASS），仍须因清单哈希不符被拒绝。"""
+        bad = self.tampered_vendor()
+        vm = os.path.join(bad, "tools", "verify_manifest.py")
+        with open(vm, "rb") as fh:
+            new_hash = hashlib.sha256(fh.read()).hexdigest()
+        man = os.path.join(bad, "MANIFEST.sha256")
+        with open(man, "rb") as fh:
+            lines = fh.read().decode("utf-8").splitlines(True)
+        hit = 0
+        for i, line in enumerate(lines):
+            if line.rstrip().endswith("tools/verify_manifest.py"):
+                lines[i] = new_hash + line[64:]
+                hit += 1
+        self.assertEqual(hit, 1, "场景前提：清单中有且仅有一行 tools/verify_manifest.py")
+        with open(man, "wb") as fh:
+            fh.write("".join(lines).encode("utf-8"))
+        rc, out = self.init("--apply", "--standard", bad)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("REFUSED", out)
+        self.assertEqual(snapshot(self.proj), {})
+
     def test_default_run_records_pinned_trust(self):
         rc, out = self.init("--apply")
         self.assertEqual(rc, 0, out)
