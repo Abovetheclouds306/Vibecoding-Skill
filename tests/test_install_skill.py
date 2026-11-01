@@ -482,6 +482,24 @@ class TestVerifyFailure(Base):
         self.assertFalse(os.path.exists(self.dest), "篡改的源副本不应写入任何文件")
 
 
+class TestInstallerInterrupt(Base):
+    def test_interrupt_mid_install_reports_written_files_rc130(self):
+        real = inst.write_file
+        n = {"c": 0}
+
+        def wf(*a, **k):
+            n["c"] += 1
+            if n["c"] == 2:
+                raise KeyboardInterrupt
+            return real(*a, **k)
+        with mock.patch.object(inst, "write_file", wf):
+            rc, out = self.install()
+        self.assertEqual(rc, 130, out)
+        self.assertIn("INTERRUPTED", out)
+        self.assertIn("已写入 1 个文件", out)
+        self.assertNotIn("安装完成", out)
+
+
 class TestR4N7VendorExtraFile(Base):
     def test_unregistered_file_in_vendor_refused(self):
         self.write(os.path.join(self.src, "vendor", "vibecoding-standard", "evil.py"), "print('x')\n")

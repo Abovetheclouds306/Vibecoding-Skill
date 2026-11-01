@@ -908,6 +908,19 @@ def _main(argv: list[str]) -> int:
             else:
                 print("== 结论: FAILED（已回滚，退出码 1）==")
             return 1
+        except KeyboardInterrupt:  # 用户中断：同样回滚本次写入，绝不报告完成
+            actions = journal.rollback()
+            print("INTERRUPTED: 初始化被中断，未完成；%s。" % (
+                "已尝试按逆序回滚本次写入（存在未还原项）" if journal.residuals else "已按逆序回滚本次写入"))
+            print("  中断步骤 : %s" % journal.step)
+            print("--- 回滚动作 ---")
+            for a in actions:
+                print("  " + a)
+            if print_residuals(journal.residuals):
+                print("== 结论: INTERRUPTED（未完成，回滚不完整，存在残留，退出码 130）==")
+            else:
+                print("== 结论: INTERRUPTED（未完成，已回滚，退出码 130）==")
+            return 130
 
         result["steps"].append(plan)
         result["steps"].append({"file": ".vibecoding/config.json", "status": state_cfg})
@@ -977,7 +990,11 @@ _JSON_RESULT: list = []
 
 def main(argv: list[str]) -> int:
     if "--json" not in argv:
-        return _main(argv)
+        try:
+            return _main(argv)
+        except KeyboardInterrupt:  # 写入阶段之外的中断（预检/校验时）：尚未写入
+            print("INTERRUPTED: 初始化被中断，未完成（中断发生在写入阶段之外，未写入文件）。退出码 130")
+            return 130
     del _JSON_RESULT[:]
     buf = io.StringIO()
     usage_error = False
@@ -992,6 +1009,9 @@ def main(argv: list[str]) -> int:
         else:
             rc = exc.code if isinstance(exc.code, int) else 2
             usage_error = True
+    except KeyboardInterrupt:
+        buf.write("INTERRUPTED: 初始化被中断，未完成（中断发生在写入阶段之外，未写入文件）。\n")
+        rc = 130
     except Exception as exc:  # noqa: BLE001 — JSON 模式下也要给出契约内的失败结果
         buf.write("ERROR: 未预期异常 %s: %s\n" % (type(exc).__name__, exc))
         rc = 1
@@ -1006,7 +1026,8 @@ def main(argv: list[str]) -> int:
             payload["messages"] = lines
     else:
         first = lines[0] if lines else ""
-        status = "usage_error" if usage_error else ("refused" if first.startswith("REFUSED") else "failed")
+        status = ("usage_error" if usage_error else "refused" if first.startswith("REFUSED")
+                  else "interrupted" if first.startswith("INTERRUPTED") else "failed")
         # R4-N6：mode/project 用与 _main 相同的解析规则推导（支持 --project=X，不认缩写）
         mp = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
         mp.add_argument("--project")

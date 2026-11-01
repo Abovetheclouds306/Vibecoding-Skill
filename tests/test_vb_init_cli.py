@@ -580,6 +580,48 @@ class TestR8N1NonRedirectedResidualReconciled(R7Helper):
         self.assertIn("FAILED（已回滚", out)
 
 
+class TestKeyboardInterrupt(Base):
+    def _interrupt_on_handoff(self, *extra):
+        real = vb_init._replace
+
+        def rep(src, dst):
+            if os.path.basename(dst) == "HANDOFF.md":
+                raise KeyboardInterrupt
+            return real(src, dst)
+        with mock.patch.object(vb_init, "_replace", rep):
+            return self.init("--apply", *extra)
+
+    def assert_no_files(self):
+        self.assertEqual(snapshot(self.proj), {}, "中断后应回滚本次写入")
+
+    def test_interrupt_during_write_text(self):
+        rc, out = self._interrupt_on_handoff()
+        self.assertEqual(rc, 130, out)
+        self.assertIn("INTERRUPTED", out)
+        self.assertNotIn("初始化完成", out)
+        self.assertNotIn("PASS", out.split("INTERRUPTED", 1)[1])
+        self.assert_no_files()
+
+    def test_interrupt_during_write_json(self):
+        rc, out = self._interrupt_on_handoff("--json")
+        self.assertEqual(rc, 130, out)
+        data = json.loads(out)
+        self.assertEqual((data["status"], data["rc"]), ("interrupted", 130), out)
+        self.assert_no_files()
+
+    def test_interrupt_before_write_json_and_text(self):
+        def boom(*a, **k):
+            raise KeyboardInterrupt
+        with mock.patch.object(vb_init, "verify_standard", boom):
+            rc, out = self.init("--apply", "--json")
+            rc2, out2 = self.init("--apply")
+        data = json.loads(out)
+        self.assertEqual((rc, data["status"], data["rc"]), (130, "interrupted", 130), out)
+        self.assertEqual(rc2, 130, out2)
+        self.assertIn("INTERRUPTED", out2)
+        self.assert_no_files()
+
+
 class TestR4N7TrustedStandard(Base):
     """R4-N7：信任判据是技能自带的固定清单哈希，不是被校验目录自带的脚本。"""
 
