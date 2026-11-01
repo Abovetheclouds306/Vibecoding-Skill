@@ -30,6 +30,8 @@ POC 实测（2026-10-25）：`通过 33 / 未登记 0 -> PASS`；且与 Git 签�
 ## 纪律
 
 1. **禁止在此目录内编辑任何文件**。规则有问题 → 回标准仓库走变更流程 → 发新版本 → 整体替换本目录。
-2. 升级方式：替换整个目录 → 跑上面的校验 → 更新 `SKILL.md` frontmatter 的 `metadata.standard_version` 与 `standard_vendored_sha256`。
+2. 升级方式：替换整个目录 → 跑上面的校验 → 更新 `SKILL.md` frontmatter 的 `metadata.standard_version` 与 `standard_vendored_sha256`，并同步 `scripts/vb_trust.py` 的 `PINNED_MANIFEST_SHA256` / `PINNED_FILE_COUNT`。
 3. 本目录**不是**第二份可独立维护的母规范；它没有独立版本号，只跟随标准版本。
 4. 若校验失败：本技能的初始化与门禁都会拒绝执行（`vb_init.py` 直接退出码 1），以免用漂移的规则做判定。
+5. 可信判据（R4-N7）：`scripts/vb_trust.py` 固定 `MANIFEST.sha256` 的 SHA-256 并逐文件核对，vb_init / vb_gate / 安装器都用它；上面的 verify_manifest.py 只证明自洽。完整来源与 blob 对照见独立仓库根目录 `VENDOR-PROVENANCE.md`。
+6. 上表“来源包 SHA-256”是 ZIP 文件哈希（SKILL.md 中 `standard_vendored_sha256` 同值）。
