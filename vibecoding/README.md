@@ -24,6 +24,10 @@ python tools/install_skill.py --target workbuddy   --scope project --project <�
 python tools/install_skill.py --target cursor      --scope project --project <项目> --dry-run
 ```
 
+安装前后，安装器都用自带的 `vibecoding/scripts/vb_trust.py`（固定 v1.2.7 清单 SHA-256）核对 `vendor/vibecoding-standard/`；源副本不符时一个文件也不写（退出码 1）。
+
+**安装中途失败 / 被中断（无跨文件原子性）**：单个文件用临时文件 + 替换写入，不会半写；但多文件之间没有事务。若在第 N 个文件处失败（退出码 1）或按 Ctrl+C 中断（退出码 130），前面已写入的文件会保留、不回滚，安装清单 `.vibecoding-install.json` 可能尚未更新；输出会列出已写入的文件。恢复方法：修复原因后重跑同一条安装命令（幂等，内容相同的文件跳过），或手工删除输出中列出的文件。安装器从不删除文件。
+
 ## 二、首次使用（三步）
 
 ```bash
@@ -58,8 +62,9 @@ python <skill>/scripts/vb_handoff.py --project <项目> --show
 ## 四、验证技能自身
 
 ```bash
-python scripts/vb_init.py --project <空目录> --skip-standard-check   # 冒烟
-python vendor/vibecoding-standard/tools/verify_manifest.py           # 标准副本完整性
+python scripts/vb_init.py --project <空目录> --skip-standard-check   # 冒烟（标记为未验证，不是签收声明）
+python scripts/vb_trust.py vendor/vibecoding-standard                # 标准副本 vs 固定 v1.2.7 清单（可信判据）
+python vendor/vibecoding-standard/tools/verify_manifest.py           # 标准副本自带校验（仅自洽性）
 ```
 
 ## 五、退出码
