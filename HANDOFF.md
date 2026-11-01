@@ -129,3 +129,10 @@
 - NOT_RUN：同 R9（文件级符号链接、user scope、CI）；非 Windows 干净机器。
 - 残余：见 TODO R10-RES-1（TOCTOU）、R10-RES-2（pyc）、R9-RES-1（空目录）。
 - 更正（R10 复核）：R10-RES-2 实测可利用，升级为 R10-N1 High；R9-F1 仅部分关闭。见 R11 段。
+
+## R11（2026-11-01，R10 复核 CHANGES_REQUESTED 的修复；开发者自测，非 Reviewer 结论）
+- 提交：070bf45（N1/N2/N4/N5 代码+测试）、1beb807（user scope 真实 HOME 硬失败防护）、d6bc082（N3/N6 文档）、5392bd1 与其后一条（纵深防御/读后替换测试）、本文档提交。
+- N1：vb_trust 把 `__pycache__` 外的 .pyc/.pyo 记为未登记；vb_gate 只把 `read_verified` 返回的已核对字节写入私有临时目录，以 `-I -B` 运行。N2：校验与执行之间不再回读被定位目录。N4：中断输出 INTERRUPTED，rc130，无 traceback。
+- 自测：全套 155 OK（skip 1）；verify_manifest/vb_trust rc0；R10 argparse.pyc 复现：vb_trust rc1、vb_gate rc1 且未执行；autocrlf 克隆 vb_trust rc0、安装 rc0；变异 G1/F1a/F1b/N1a/F1f/N2a/N2b/N1b/执行被定位目录/N4/F2a/F2b/HOME 防护绕过全部被杀；新测试对 e91d7b5 代码 13 项失败（判别有效）。
+- 事故规则：`C:\Users\ADMIN\.agents\skills\vibecoding` 每次运行前后均不存在；其余真实安装目录不变。
+- 残余：TODO R11-RES-1..3、R9-RES-1。待独立 Reviewer 复核 R11。
