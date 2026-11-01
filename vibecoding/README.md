@@ -15,13 +15,13 @@
 
 > WorkBuddy 用户级路径存在两套文档口径，本机两个目录都存在。安装脚本用 `--target` 显式指定，避免靠猜。
 
-一键安装（本仓库附带脚本，只做复制 + 校验，不改系统配置）：
+一键安装（在本仓库根目录执行；附带脚本，只做复制 + 校验，不改系统配置）：
 
 ```bash
-python skill/tools/install_skill.py --target claude-code --scope project --project <项目>
-python skill/tools/install_skill.py --target codex       --scope user
-python skill/tools/install_skill.py --target workbuddy   --scope project --project <项目> --path .codebuddy/skills
-python skill/tools/install_skill.py --target cursor      --scope project --project <项目> --dry-run
+python tools/install_skill.py --target claude-code --scope project --project <项目>
+python tools/install_skill.py --target codex       --scope user
+python tools/install_skill.py --target workbuddy   --scope project --project <项目> --path .codebuddy/skills
+python tools/install_skill.py --target cursor      --scope project --project <项目> --dry-run
 ```
 
 ## 二、首次使用（三步）

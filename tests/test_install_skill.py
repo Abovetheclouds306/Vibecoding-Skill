@@ -3,7 +3,7 @@
 
 - 全部在系统临时目录下进行，绝不触碰真实技能安装目录（~/.claude、~/.agents、~/.cursor、WorkBuddy 等）：
   每个用例都用 --scope project --project <临时目录> --path <相对路径>。
-- 被测脚本默认是本仓库的 skill/tools/install_skill.py；设置环境变量 VB_INSTALLER_UNDER_TEST
+- 被测脚本默认是本仓库的 tools/install_skill.py；设置环境变量 VB_INSTALLER_UNDER_TEST
   可指向别的版本（用于判别力：对旧版 c08407d 安装器跑同一批用例，应出现 FAIL）。
 - 无法创建符号链接/Junction 的系统上，相关用例 skipTest 并写明原因（记 NOT_RUN，不是 PASS）。
 """

@@ -1,4 +1,6 @@
-# TODO（skill/ 任务真相源）
+# TODO（任务真相源）
+
+> 本仓库由 Vibecoding-Standard@53eb391 的 `skill/` 子树拆出（见 `PROVENANCE.md`）。下文历史条目中的 `skill/...` 路径对应本仓库根目录。
 
 状态取值：PASS（开发者自测）/ FAIL / UNKNOWN / NOT_RUN / OPEN。自测 PASS 不等于 R4 复核通过。
 
