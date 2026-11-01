@@ -101,12 +101,12 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--verify", action="append", default=[], help="验证命令，可重复；同一命令只跑一次")
     ap.add_argument("--evidence", help="证据文件路径（默认 .vibecoding/evidence/<TASK>.md）")
     ap.add_argument("--task-status", default="REVIEW", choices=["DONE", "REVIEW", "IN_PROGRESS", "BLOCKED"], help="任务状态；DONE 才做完整性检查")
-    ap.add_argument("--standard", help="标准副本目录")
-    ap.add_argument("--check-standard", action="store_true", help="额外校验标准副本完整性（作为 AC-000，不参与 PASS 判定时仍记录）")
+    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；执行其 check_evidence.py 前必须通过固定 v1.2.7 签收清单校验，否则不执行、结构校验记 FAIL）")
+    ap.add_argument("--check-standard", action="store_true", help="把固定 v1.2.7 签收清单校验（vb_trust）另记为一条验收行并参与汇总；无论是否加此参数，执行标准脚本前都会先做该校验")
     ap.add_argument("--timeout", type=int, default=900, help="单条命令超时秒数")
     ap.add_argument("--force", action="store_true", help="允许覆盖非本工具生成的证据文件")
     ap.add_argument("--no-write", action="store_true", help="只跑命令、不写证据文件")
-    ap.add_argument("--python", default=sys.executable)
+    ap.add_argument("--python", default=sys.executable, help="运行（已通过可信校验的）标准 check_evidence.py 的解释器")
     args = ap.parse_args(argv)
 
     project = os.path.abspath(args.project)
@@ -236,7 +236,20 @@ def main(argv: list[str]) -> int:
 
     # 用标准自带的证据门禁做结构校验（复用 v1.2.7 工具，不重写规则）
     struct_rc = 2
+    trust_rc = None
     if standard and not args.no_write:
+        # R9-F1 / R4-N7：执行标准目录中的任何脚本之前，先用技能自带、固定 v1.2.7 清单 SHA-256 的校验器核对；
+        # 不通过则绝不执行，结构校验记 FAIL。--standard / VB_STANDARD_HOME 只改变读取位置，不改变信任判据。
+        trust_rc, trust_lines = vb_trust.verify_pinned(standard)
+    if standard and not args.no_write and trust_rc != 0:
+        struct_rc = 1
+        print("--- 标准证据门禁（check_evidence.py）---")
+        print("  REFUSED（信任边界）：标准副本未通过固定 v%s 签收清单校验（rc=%d），拒绝执行其中的 check_evidence.py: %s"
+              % (vb_trust.STANDARD_VERSION, trust_rc, standard))
+        for line in trust_lines[-6:]:
+            print("  " + line)
+        print("  --standard / VB_STANDARD_HOME 只改变读取位置，不改变信任判据；结构校验记 FAIL。")
+    elif standard and not args.no_write:
         cmd = [args.python, os.path.join(standard, "tools", "check_evidence.py"), evidence_path,
                "--task-id", args.task, "--task-status", args.task_status]
         for r in rows:
