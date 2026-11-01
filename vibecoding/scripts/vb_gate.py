@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""vb_gate.py — 验证证据门禁：跑命令 → 写证据 → 调标准 check_evidence.py → 汇总退出码。
+"""vb_gate.py — 验证证据门禁：跑命令 → 写证据 → vb_trust 固定清单核对标准副本 → 通过后才调其 check_evidence.py → 汇总退出码。
 
 语义（与 Vibecoding v1.2.7 一致，严重度 1 > 2 > 0）：
   0 = PASS    全部验证已运行且退出码 0，证据结构校验通过

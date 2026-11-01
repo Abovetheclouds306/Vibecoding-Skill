@@ -49,7 +49,7 @@ metadata:
 # 1) 受保护初始化：默认 dry-run，只在 --apply 时落盘；重复执行必须无变化
 python <skill>/scripts/vb_init.py --project <项目> --apply
 
-# 2) 门禁：跑验证命令 → 写证据 → 调标准自带 check_evidence.py → 汇总退出码
+# 2) 门禁：跑验证命令 → 写证据 → 先用 vb_trust 固定清单核对标准副本，通过后才调其 check_evidence.py → 汇总退出码
 python <skill>/scripts/vb_gate.py --project <项目> --task <TASK-ID> --verify "<命令>"
 
 # 3) 交接：写/读 HANDOFF.md，恢复时用它列出应复核的证据

@@ -25,7 +25,7 @@ python scripts/vb_gate.py --project <项目> --task T-001 \
 
 1. 逐条执行 `--verify`，记录命令、实际退出码、输出尾部、耗时。
 2. 写 `.vibecoding/evidence/T-001.md`（字段对齐标准模板）。
-3. 调用标准自带 `tools/check_evidence.py` 做结构校验，把它的退出码并入汇总。
+3. 先用技能自带 `scripts/vb_trust.py`（固定 v1.2.7 清单 SHA-256）核对标准副本；通过后才调用其 `tools/check_evidence.py` 做结构校验，把它的退出码并入汇总。核对不通过时**不执行**该脚本，结构校验记 FAIL（`--standard` / `VB_STANDARD_HOME` 只改变读取位置，不改变信任判据）。
 4. 打印结论横幅并以其为进程退出码。
 
 **没有 `--verify` 时**：默认 `NOT_RUN` → 退出码 `2`，横幅为 `UNKNOWN`。要写作"本任务无自动验证"，必须显式 `--allow-missing-verify`，此时仍会在证据里标注"无自动验证"。

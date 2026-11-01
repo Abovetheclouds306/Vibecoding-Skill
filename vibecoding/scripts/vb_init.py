@@ -521,7 +521,8 @@ def preflight(project: str, plan: dict) -> list[str]:
 
 
 def find_standard(project: str, explicit: str | None) -> tuple[str | None, str]:
-    """定位标准副本目录（含 tools/verify_manifest.py 的目录）。返回 (路径, 来源说明)。"""
+    """定位标准副本目录（以 tools/verify_manifest.py 存在作为“看起来像标准副本”的定位条件，仅用于定位，不代表可信；
+    可信与否由 verify_standard → vb_trust 固定清单判定）。返回 (路径, 来源说明)。"""
     here = os.path.dirname(os.path.abspath(__file__))
     candidates: list[tuple[str, str]] = []
     if explicit:
@@ -703,12 +704,12 @@ def _main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description="Vibecoding Skill 受保护初始化（默认 dry-run）",
                                  allow_abbrev=False)   # R4-N6：禁止前缀缩写（--jso/--app 等）
     ap.add_argument("--project", default=".", help="目标项目目录（默认当前目录）")
-    ap.add_argument("--standard", help="标准副本目录（含 tools/verify_manifest.py）")
+    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；仍须通过技能自带 vb_trust 的固定 v1.2.7 签收清单校验，否则拒绝）")
     ap.add_argument("--apply", action="store_true", help="实际落盘；缺省为 dry-run")
     ap.add_argument("--allow-dirty", action="store_true", help="工作区脏时仍允许改 tracked 文件")
     ap.add_argument("--update-block", action="store_true", help="标记块内容不同时允许覆盖")
     ap.add_argument("--skip-standard-check", action="store_true", help="跳过标准副本完整性校验（不推荐）")
-    ap.add_argument("--python", default=sys.executable, help="用于调用标准工具的解释器")
+    ap.add_argument("--python", default=sys.executable, help="保留参数（兼容旧调用）；R4-N7 起初始化不再执行标准目录中的任何工具")
     ap.add_argument("--json", action="store_true", help="以 JSON 输出结果")
     args = ap.parse_args(argv)
 
