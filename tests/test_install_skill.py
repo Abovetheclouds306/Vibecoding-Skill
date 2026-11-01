@@ -107,8 +107,14 @@ class Base(unittest.TestCase):
             shutil.rmtree(self.src)
         for rel, text in files.items():
             self.write(os.path.join(self.src, *rel.split("/")), text)
-        self.write(os.path.join(self.src, "vendor", "vibecoding-standard", "tools", "verify_manifest.py"),
-                   "import sys\nprint('stub verify')\nsys.exit(%d)\n" % self.VERIFY_RC)
+        # R4-N7：安装器用固定哈希校验 vendor，桩脚本不再可用；复制真实 v1.2.7 副本。
+        vend = os.path.join(self.src, "vendor", "vibecoding-standard")
+        shutil.copytree(os.path.join(REAL_SKILL, "vendor", "vibecoding-standard"), vend,
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        if self.VERIFY_RC:
+            # 篡改：把副本自带的校验脚本换成「永远通过」——旧实现运行它会得到 rc0
+            self.write(os.path.join(vend, "tools", "verify_manifest.py"),
+                       "import sys\nprint('stub verify PASS')\nsys.exit(0)\n")
 
     def install(self, *extra, source=None):
         argv = ["--target", "claude-code", "--scope", "project", "--project", self.proj,
@@ -468,6 +474,20 @@ class TestVerifyFailure(Base):
         rc, out = self.install()
         self.assertEqual(rc, 1, out)
         self.assertNotIn("安装完成", out)
+
+    def test_r4n7_tampered_self_passing_vendor_refused_before_write(self):
+        rc, out = self.install()
+        self.assertEqual(rc, 1, out)
+        self.assertIn("REFUSED", out)
+        self.assertFalse(os.path.exists(self.dest), "篡改的源副本不应写入任何文件")
+
+
+class TestR4N7VendorExtraFile(Base):
+    def test_unregistered_file_in_vendor_refused(self):
+        self.write(os.path.join(self.src, "vendor", "vibecoding-standard", "evil.py"), "print('x')\n")
+        rc, out = self.install()
+        self.assertEqual(rc, 1, out)
+        self.assertFalse(os.path.exists(self.dest))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""vb_trust.py — 规范副本的可信校验器（R4-N7，Owner 裁定）。
+
+信任根是**本文件里固定的哈希**，不是被校验目录自带的 `tools/verify_manifest.py`：
+1. 被校验目录的 `MANIFEST.sha256` 的 SHA-256 必须等于 PINNED_MANIFEST_SHA256（Vibecoding Standard v1.2.7
+   签收归档的清单）；
+2. 清单登记的每个文件 SHA-256 必须与清单一致，且不得缺失；
+3. 除 `MANIFEST.sha256` 与字节码缓存外，不得有未登记文件。
+全部满足才返回 0；否则返回 1。本模块只读，不执行被校验目录里的任何代码。
+
+自定义 `--standard` / `VB_STANDARD_HOME` 只改变**从哪里读**，不改变**信任什么**：
+内容与固定清单不一致的副本一律判 FAIL，不会被当作签收版本。
+"""
+from __future__ import annotations
+
+import hashlib
+import os
+import re
+import sys
+
+STANDARD_VERSION = "1.2.7"
+STANDARD_SIGNOFF = "ce5b361cf13ae373094abe67eb9ce7a6e22ecb8f"
+# vendor/vibecoding-standard/MANIFEST.sha256（v1.2.7 签收归档）的 SHA-256
+PINNED_MANIFEST_SHA256 = "68d8a834eaab9b0106bfa2dbc651bf9f67daee848f28262230140ac958ff6cd0"
+PINNED_FILE_COUNT = 33          # 清单登记文件数（另加 MANIFEST.sha256 本身 = 34）
+TRUST_PINNED = "pinned-signed-off-v%s" % STANDARD_VERSION
+TRUST_SKIPPED = "unverified-skipped"
+
+_LINE = re.compile(r"^([0-9a-f]{64}) [ *](.+)$")
+_SKIP_DIRS = {"__pycache__"}
+
+
+def _sha256(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def verify_pinned(standard: str) -> tuple[int, list[str]]:
+    """返回 (rc, 说明行)。rc 0 = 与固定 v1.2.7 签收清单逐文件一致；1 = 不一致或无法证明。"""
+    lines: list[str] = []
+    mpath = os.path.join(standard, "MANIFEST.sha256")
+    try:
+        mh = _sha256(mpath)
+        with open(mpath, "rb") as fh:
+            raw = fh.read().decode("utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        return 1, ["!! 无法读取 MANIFEST.sha256: %s" % exc, "== 可信校验: FAIL（无法证明为签收版本）=="]
+    if mh != PINNED_MANIFEST_SHA256:
+        return 1, ["!! MANIFEST.sha256 的 SHA-256 与固定值不符（期望 %s… 实际 %s…）"
+                   % (PINNED_MANIFEST_SHA256[:16], mh[:16]),
+                   "   该目录不是 Vibecoding Standard v%s 签收版本（自定义/被改动的副本不被信任）" % STANDARD_VERSION,
+                   "== 可信校验: FAIL（清单未固定匹配）=="]
+    entries: dict[str, str] = {}
+    for n, line in enumerate(raw.splitlines(), 1):
+        if not line.strip():
+            continue
+        m = _LINE.match(line.strip())
+        if not m:
+            return 1, ["!! 清单第 %d 行格式无效" % n, "== 可信校验: FAIL =="]
+        name = m.group(2).strip()
+        parts = name.split("/")
+        if os.path.isabs(name) or ".." in parts or "\\" in name:
+            return 1, ["!! 清单含非法路径: %s" % name, "== 可信校验: FAIL =="]
+        entries[name] = m.group(1)
+    bad, missing = [], []
+    for name, expect in sorted(entries.items()):
+        p = os.path.join(standard, *name.split("/"))
+        if not os.path.isfile(p):
+            missing.append(name)
+        elif _sha256(p) != expect:
+            bad.append(name)
+    extra = []
+    for dp, dns, fns in os.walk(standard):
+        dns[:] = [d for d in dns if d not in _SKIP_DIRS]
+        for f in fns:
+            rel = os.path.relpath(os.path.join(dp, f), standard).replace(os.sep, "/")
+            if rel == "MANIFEST.sha256" or rel.endswith((".pyc", ".pyo")):
+                continue
+            if rel not in entries:
+                extra.append(rel)
+    for name in bad:
+        lines.append("!! 哈希不符: %s" % name)
+    for name in missing:
+        lines.append("!! 缺失: %s" % name)
+    for name in extra:
+        lines.append("!! 未登记文件: %s" % name)
+    ok = not bad and not missing and not extra and len(entries) == PINNED_FILE_COUNT
+    lines.append("== 可信校验: %s（固定清单 v%s；通过 %d / 失败 %d / 缺失 %d / 未登记 %d）=="
+                 % ("PASS" if ok else "FAIL", STANDARD_VERSION, len(entries) - len(bad) - len(missing),
+                    len(bad), len(missing), len(extra)))
+    return (0 if ok else 1), lines
+
+
+if __name__ == "__main__":
+    target = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "vendor", "vibecoding-standard")
+    rc, out = verify_pinned(os.path.abspath(target))
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
+    print("\n".join(out))
+    sys.exit(rc)

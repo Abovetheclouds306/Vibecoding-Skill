@@ -38,6 +38,9 @@ import os
 import subprocess
 import sys
 import tempfile
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vb_trust  # noqa: E402  R4-N7：固定哈希的可信校验器（技能自带，不执行被校验目录里的脚本）
 from datetime import datetime
 
 SKILL_VERSION = "0.1.0"
@@ -54,7 +57,7 @@ BLOCK = """<!-- vibecoding:begin skill={sv} standard={std} -->
 
 本项目遵循 Vibecoding Standard v{std}。以下为不可省略的最低动作，细节见 `.vibecoding/` 与所用的 Agent Skill `vibecoding`。
 
-- **唯一规则真值源**：Vibecoding Standard v{std} 正文，只读，与签收版本逐字节相同。规则改动只能回到标准仓库发版，不得就地修改。
+- **唯一规则真值源**：{std_claim}规则改动只能回到标准仓库发版，不得就地修改。
   - **规范位置**：以 `.vibecoding/config.json` 的 `standard_vendor_path` 字段为准；该目录须含 `AI_PROJECT_STANDARD.md` 与 `MANIFEST.sha256`。
   - **本次初始化解算**：`{vendor_path}`（{vendor_condition}）。
   - **路径不可读时**：说明技能已卸载或项目已移动。此时**不得假装规范已加载**，也不得引用未读到的条款；须重新安装技能后执行 `vb_init.py --project . --apply` 重定位。
@@ -591,9 +594,15 @@ def vendor_reference(project: str, standard: str) -> dict:
 
 
 def verify_standard(standard: str, python_exe: str) -> tuple[int, list[str]]:
-    rc, out, err = run([python_exe, os.path.join(standard, "tools", "verify_manifest.py")], cwd=standard, timeout=300)
-    tail = [l for l in (out + err).strip().splitlines() if l.strip()][-6:]
-    return rc, tail
+    """R4-N7：用技能自带、固定哈希的校验器核对；不运行被校验目录自带的 verify_manifest.py。
+    python_exe 保留参数位以兼容旧调用，不再用于校验。"""
+    rc, lines = vb_trust.verify_pinned(standard)
+    return rc, lines[-6:]
+
+
+STD_CLAIM_TRUSTED = "Vibecoding Standard v{std} 正文，只读，与签收版本逐字节相同。"
+STD_CLAIM_SKIPPED = ("Vibecoding Standard v{std} 正文，只读。**本次初始化使用了 --skip-standard-check，"
+                     "规范副本未经校验，不得视为签收版本**；去掉该参数重新 --apply 才能确认。")
 
 
 def split_block(text: str) -> tuple[int, int] | None:
@@ -736,15 +745,21 @@ def _main(argv: list[str]) -> int:
             print("REFUSED: 标准副本完整性校验未通过（退出码 %d），未写入任何文件。" % rc)
             for line in tail:
                 print("  " + line)
+            print("  信任边界：只接受与固定的 v%s 签收清单（SHA-256 %s…）逐文件一致的副本；"
+                  "--standard / VB_STANDARD_HOME 只改变读取位置，不改变信任判据。"
+                  % (STANDARD_VERSION, vb_trust.PINNED_MANIFEST_SHA256[:16]))
             return 1
+        result["standard"]["trust"] = vb_trust.TRUST_PINNED
     else:
         result["standard"]["verify_rc"] = None
-        result["standard"]["verify_tail"] = ["skipped"]
+        result["standard"]["verify_tail"] = ["SKIPPED：--skip-standard-check，标准副本未经校验，不是签收版本声明"]
+        result["standard"]["trust"] = vb_trust.TRUST_SKIPPED
+    std_claim = (STD_CLAIM_SKIPPED if args.skip_standard_check else STD_CLAIM_TRUSTED).format(std=STANDARD_VERSION)
 
     state = git_state(project)
     result["git"] = {k: state[k] for k in ("is_repo", "root", "head", "branch", "dirty")}
 
-    desired_block = BLOCK.format(sv=SKILL_VERSION, std=STANDARD_VERSION,
+    desired_block = BLOCK.format(sv=SKILL_VERSION, std=STANDARD_VERSION, std_claim=std_claim,
                                  vendor_path=vref["path"], vendor_condition=vref["condition"])
     plan = plan_agents(project, desired_block)
 
@@ -793,6 +808,7 @@ def _main(argv: list[str]) -> int:
             "standard_release_commit": STANDARD_RELEASE,
             "standard_vendor_zip_sha256": STANDARD_ZIP_SHA,
             "standard_vendor_path": vendor_rel,
+            "standard_trust": result["standard"]["trust"],
             "initialized_at": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z"),
         }
         cfg_path = os.path.join(project, ".vibecoding", "config.json")
@@ -805,7 +821,8 @@ def _main(argv: list[str]) -> int:
             # 2) config.json（幂等：只比稳定字段，initialized_at 保留原值）
             journal.step = ".vibecoding/config.json"
             stable = ("skill_version", "standard_version", "standard_signoff_commit",
-                      "standard_release_commit", "standard_vendor_zip_sha256", "standard_vendor_path")
+                      "standard_release_commit", "standard_vendor_zip_sha256", "standard_vendor_path",
+                      "standard_trust")
             prev = None
             if os.path.exists(cfg_path):
                 try:
@@ -925,7 +942,11 @@ def _main(argv: list[str]) -> int:
         print("标准来源  : %s" % source)
         print("标准副本  : %s" % standard)
         print("规范定位  : %s（%s）" % (vref["path"], vref["condition"]))
-        print("标准校验  : rc=%s %s" % (result["standard"]["verify_rc"], "PASS" if result["standard"]["verify_rc"] == 0 else "见下"))
+        if result["standard"]["verify_rc"] is None:
+            print("标准校验  : SKIPPED（未验证；不是签收版本声明）")
+        else:
+            print("标准校验  : rc=%s %s" % (result["standard"]["verify_rc"],
+                  "PASS（固定 v%s 签收清单）" % STANDARD_VERSION if result["standard"]["verify_rc"] == 0 else "见下"))
         for line in result["standard"]["verify_tail"]:
             print("            " + line)
         print("Git       : %s" % ("repo=%s branch=%s head=%s dirty=%s" % (state["is_repo"], state["branch"], (state["head"] or "")[:12], state["dirty"]) if state["is_repo"] else "非 Git 仓库"))

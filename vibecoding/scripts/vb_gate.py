@@ -16,6 +16,9 @@ import subprocess
 import sys
 from datetime import datetime
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vb_trust  # noqa: E402  R4-N7：固定哈希可信校验，不运行标准目录自带的 verify_manifest.py
+
 SKILL_VERSION = "0.1.0"
 GENERATED_MARK = "<!-- generated-by: vb_gate"
 SEVERITY_NAME = {0: "PASS", 1: "FAIL", 2: "UNKNOWN"}
@@ -145,13 +148,14 @@ def main(argv: list[str]) -> int:
             rows.append({"id": "AC-%03d" % ac, "cmd": "verify_manifest.py", "rc": 2, "conclusion": "NOT_RUN", "log": "N/A", "limit": "未找到标准副本"})
             codes.append(2)
         else:
-            rc, out, err = run([args.python, os.path.join(standard, "tools", "verify_manifest.py")], cwd=standard, timeout=300)
-            tail = [l for l in (out + err).strip().splitlines() if l.strip()][-1:]
+            rc, vlines = vb_trust.verify_pinned(standard)
+            out, err = "\n".join(vlines) + "\n", ""
+            tail = vlines[-1:]
             os.makedirs(logs_dir, exist_ok=True)
             log_name = "%s-AC%03d.log" % (args.task, ac)
             open(os.path.join(logs_dir, log_name), "wb").write(
-                ("$ python tools/verify_manifest.py (cwd=%s)\n\n[exit code] %d\n\n--- output ---\n%s\n" % (standard, rc, out + err)).encode("utf-8"))
-            rows.append({"id": "AC-%03d" % ac, "cmd": "python tools/verify_manifest.py", "rc": rc,
+                ("$ vb_trust.verify_pinned (固定 v1.2.7 签收清单; dir=%s)\n\n[exit code] %d\n\n--- output ---\n%s\n" % (standard, rc, out + err)).encode("utf-8"))
+            rows.append({"id": "AC-%03d" % ac, "cmd": "vb_trust 固定清单校验", "rc": rc,
                          "conclusion": "PASS" if rc == 0 else ("FAIL" if rc == 1 else "NOT_RUN"),
                          "log": "logs/" + log_name, "limit": (tail[0] if tail else "")[:80]})
             codes.append(rc)

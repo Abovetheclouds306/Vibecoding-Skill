@@ -14,6 +14,15 @@
   Junction / 其他重解析点时拒绝（退出码 1），不跟随。不检查：user scope 下 ~ 及其上层；--path 为绝对路径
   或越出项目时目标目录的上层（只检查目标目录本身、悬空链接及逐文件 realpath 边界）。
 
+标准副本信任（R4-N7）：源与安装后的 vendor/vibecoding-standard 都由安装器自带的
+`vibecoding/scripts/vb_trust.py`（固定 v1.2.7 清单 SHA-256）逐文件核对；不运行被安装目录里的
+verify_manifest.py。校验器缺失时拒绝安装（fail closed）。源副本不符时一个文件也不写（退出码 1）。
+
+中途失败（无跨文件原子性）：逐文件写入使用临时文件 + 替换，单个文件不会半写；但若在第 N 个文件处失败
+或被中断（Ctrl+C，退出码 130），前 N-1 个文件已落盘、不会回滚，安装清单可能尚未更新。输出会列出已写入的
+文件。恢复：修复原因后重新运行同一安装命令（幂等，内容相同的文件跳过；已登记且未被改过的文件可用 --force
+更新）；或手工删除输出中列出的文件。安装器从不删除文件。
+
 退出码：0 = 成功/无变化；1 = 拒绝（边界/链接/源异常）、写入失败或校验失败；
 2 = 需要人工决定（目标与源不同但未加 --force，或存在归属不明的冲突）。
 """
@@ -40,6 +49,24 @@ MANIFEST_NAME = ".vibecoding-install.json"
 MANIFEST_KIND = "vibecoding-skill-install"
 
 # 不随技能分发的产物：字节码缓存、编辑器/系统垃圾、打包中间件。
+VENDOR_REL = ("vendor", "vibecoding-standard")
+
+
+def load_trust(here):
+    """加载安装器自带的固定哈希校验器；缺失或损坏返回 None（调用方 fail closed）。"""
+    import importlib.util
+    path = os.path.join(here, "..", "vibecoding", "scripts", "vb_trust.py")
+    if not os.path.isfile(path):
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("vb_trust_installer", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod if hasattr(mod, "verify_pinned") else None
+    except Exception:
+        return None
+
+
 IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".DS_Store", "Thumbs.db", "*.egg-info")
 
 
@@ -223,6 +250,16 @@ def main(argv):
 
     here = os.path.dirname(os.path.abspath(__file__))
     source = os.path.abspath(args.source or os.path.join(here, "..", "vibecoding"))
+    trust = load_trust(here)
+    if trust is None:
+        print("REFUSED: 未找到安装器自带的标准校验器 vibecoding/scripts/vb_trust.py，拒绝安装（fail closed）。")
+        return 1
+    src_vrc, src_vlines = trust.verify_pinned(os.path.join(source, *VENDOR_REL))
+    if src_vrc != 0:
+        print("REFUSED: 源中的标准副本与固定的 v1.2.7 签收清单不符（rc=%d），未写入任何文件。" % src_vrc)
+        for line in src_vlines[-6:]:
+            print("  " + line)
+        return 1
     if not os.path.isfile(os.path.join(source, "SKILL.md")):
         print("ERROR: 源目录不含 SKILL.md: %s" % source)
         return 1
@@ -361,8 +398,15 @@ def main(argv):
     except (OSError, BoundaryError) as exc:
         print("ERROR: 安装中途失败: %s: %s" % (type(exc).__name__, exc))
         print("  已写入 %d 个文件（未回滚，未删除任何文件）: %s" % (len(written), written[:10]))
+        print("  恢复：修复原因后重跑同一命令（幂等），或手工删除上列文件；无跨文件原子性。")
         print("== 结论: FAILED（安装未完成，退出码 1）==")
         return 1
+    except KeyboardInterrupt:
+        print("INTERRUPTED: 安装被中断，未完成。")
+        print("  已写入 %d 个文件（未回滚，未删除任何文件）: %s" % (len(written), written[:10]))
+        print("  恢复：重跑同一命令（幂等），或手工删除上列文件；无跨文件原子性。")
+        print("== 结论: INTERRUPTED（安装未完成，退出码 130）==")
+        return 130
 
     if changes:
         print("  已写入 %d 个文件（新增 %d，更新 %d）" % (len(changes), len(plan["create"]), len(plan["update"])))
@@ -371,15 +415,9 @@ def main(argv):
 
     rc = 0
     ok_skill = os.path.isfile(os.path.join(dest, "SKILL.md"))
-    vm = os.path.join(dest, "vendor", "vibecoding-standard", "tools", "verify_manifest.py")
-    ok_std = None
-    if os.path.isfile(vm):
-        vrc, out, err = run([sys.executable, vm], cwd=os.path.dirname(os.path.dirname(vm)))
-        ok_std = (vrc == 0)
-        print("标准校验: rc=%d %s" % (vrc, [l for l in (out + err).strip().splitlines() if l.strip()][-1:]))
-    else:
-        print("标准校验: MISSING（未找到 vendor/vibecoding-standard/tools/verify_manifest.py）")
-        ok_std = False
+    vrc, vlines = trust.verify_pinned(os.path.join(dest, *VENDOR_REL))
+    ok_std = (vrc == 0)
+    print("标准校验: rc=%d %s（固定 v1.2.7 签收清单，安装器自带校验器）" % (vrc, vlines[-1:]))
     print("入口校验: SKILL.md %s" % ("OK" if ok_skill else "MISSING"))
     if not ok_skill or not ok_std:
         rc = 1

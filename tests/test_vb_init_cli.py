@@ -540,5 +540,58 @@ class TestR7N4PreflightDriveRoot(R7Helper):
         self.assertEqual([p for p in problems if "越出项目目录" in p], [], problems)
 
 
+class TestR4N7TrustedStandard(Base):
+    """R4-N7：信任判据是技能自带的固定清单哈希，不是被校验目录自带的脚本。"""
+
+    def tampered_vendor(self):
+        bad = os.path.join(self.tmp, "evil-std")
+        shutil.copytree(VENDOR, bad, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        # 自洽的篡改：自带校验脚本永远通过
+        with open(os.path.join(bad, "tools", "verify_manifest.py"), "w", encoding="utf-8") as fh:
+            fh.write("import sys\nprint('PASS (self-consistent fake)')\nsys.exit(0)\n")
+        return bad
+
+    def read_text(self, name):
+        with open(os.path.join(self.proj, name), encoding="utf-8") as fh:
+            return fh.read()
+
+    def read_cfg(self):
+        with open(os.path.join(self.proj, ".vibecoding", "config.json"), encoding="utf-8") as fh:
+            return json.load(fh)
+
+    def test_self_passing_custom_standard_refused(self):
+        rc, out = self.init("--apply", "--standard", self.tampered_vendor())
+        self.assertEqual(rc, 1, out)
+        self.assertIn("REFUSED", out)
+        self.assertIn("信任边界", out)
+        self.assertEqual(snapshot(self.proj), {}, "拒绝时不得写入任何文件")
+
+    def test_extra_file_in_custom_standard_refused(self):
+        bad = os.path.join(self.tmp, "extra-std")
+        shutil.copytree(VENDOR, bad, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        with open(os.path.join(bad, "extra.md"), "w", encoding="utf-8") as fh:
+            fh.write("x\n")
+        rc, out = self.init("--apply", "--standard", bad)
+        self.assertEqual(rc, 1, out)
+        self.assertEqual(snapshot(self.proj), {})
+
+    def test_default_run_records_pinned_trust(self):
+        rc, out = self.init("--apply")
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(self.read_cfg().get("standard_trust"), "pinned-signed-off-v1.2.7")
+        agents = self.read_text("AGENTS.md")
+        self.assertIn("与签收版本逐字节相同", agents)
+
+    def test_skip_check_makes_no_signed_off_claim(self):
+        rc, out = self.init("--apply", "--skip-standard-check")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("SKIPPED", out)
+        self.assertNotIn("PASS", out.split("标准校验", 1)[1].splitlines()[0])
+        self.assertEqual(self.read_cfg().get("standard_trust"), "unverified-skipped")
+        agents = self.read_text("AGENTS.md")
+        self.assertNotIn("与签收版本逐字节相同", agents)
+        self.assertIn("未经校验", agents)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
