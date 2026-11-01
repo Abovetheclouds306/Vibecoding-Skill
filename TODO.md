@@ -19,8 +19,8 @@
 | R4-N3 | 安装器：内层链接分量 rc2（文档写 rc1） | 自测 PASS | a887cd9；平凡的退出码对齐：链接/越界 → REFUSED rc1；测试断言收紧为 rc==1 |
 | R4-N4 | 安装器：dest 上层分量为 Junction 时跟随写出项目外 | 自测 PASS | 6a0d17a；project scope 下项目根（不含）→dest 各分量为链接 → REFUSED rc1；user scope 的 ~ 及其上层不检查（测试禁止触碰 ~，NOT_RUN） |
 | R4-N5 | 安装器：未检查 dest 与 source 重叠 | 自测 PASS | 56c60fe；realpath 相同或互相包含 → REFUSED rc1，零写入 |
-| R4-N6 | vb_init `--json` 包装层按字面匹配 argv（缩写/等号写法） | 部分修复 / 余项待 Owner 决定 | d2a83c3；allow_abbrev=False（--jso/--app 为用法错误 rc2），JSON 兜底的 mode/project 改为解析推导（支持 --project=X）。待 Owner 决定：`--json --help` 的 status（当前 usage_error rc0）与 KeyboardInterrupt 的 JSON 输出——改动属于 --json 状态契约变更 |
-| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | DEFERRED（待 Owner 决定） | 修复需固定 MANIFEST 哈希，改变 --standard 契约并新增功能，超出本轮授权 |
+| R4-N6 | `--json` 包装层按字面匹配 argv | 自测 PASS（pt19u 授权） | d2a83c3+9429d47+cabbf7e；`--json --help` → status ok rc0 kind=help；KeyboardInterrupt → 回滚、INTERRUPTED rc130（JSON status=interrupted）；待 R9 |
+| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | 自测 PASS（pt19u 授权） | 92d56ec+3437fcf；vb_trust 固定 v1.2.7 MANIFEST SHA-256（68d8a834…）并在不执行被校验目录代码的前提下逐文件比对；vb_init/vb_gate/安装器（源预检+目标复检）均改用；--skip-standard-check 标 SKIPPED，不再声明签收版本；待 R9 |
 | R4-N8 | c08407d 残留报告描述不准确 | 自测 PASS | 691f4dc；补偿先 guard 后读，guard 失败不经被替换路径读取/描述，也不再宣称「本次未改动」 |
 | R4-N9 | 项目位于盘符根目录时写入全被拒 | 自测 PASS | 608118c；`_inside` 根安全（根已以分隔符结尾时不再拼接），preflight 复用 |
 | R4-N10 | 测试与清单的小缺口（清单中 ../、绝对路径键被保留等） | 自测 PASS + DOCS | ace30ec；合并时丢弃非法清单键；新增内层 Junction 指向 dest 内用例（杀 M2）。DOCS：清单无签名/认证，仅作归属记录，伪造匹配哈希可让文件被视为「本工具所有」 |
@@ -41,3 +41,14 @@
 | R4-c08407d | 对 c08407d（及本分支）的独立复核 | 已完成 R4 | R4-REPORT.md：PASS-with-findings；R5 复核 5327eb9..HEAD 待安排 |
 | VENDOR-SCOPE | vendor 范围决策（全量 vendored 还是精简） | OPEN | 需 Chris 决定 |
 | POC-PUSH | poc/vibecoding-skill-v0.1.0 与本 fix 分支均未推送远程 | OPEN | 推送需 Chris 明确批准 |
+
+## R9（独立仓库候选，开发者自测，非 Reviewer 结论）
+| ID | 事项 | 状态 | 说明 |
+|---|---|---|---|
+| R9-0 | 拆仓（skill/ 子树为根，无历史）+ PROVENANCE | 自测 PASS | 64ec1d7、2550597 |
+| R8-N1 | 非重定向残留回滚后核对测试 | 自测 PASS | 05fe9d4；杀变异 H |
+| DOC-1 | 安装中途失败残留与恢复 | DOCS | 0479bad |
+| VEN-1 | vendor 来源 | DOCS | 10cef5d；34/34 blob 与 53eb391 一致 |
+| OSP-1 | 开源准备审计 | 仅发现，未处理 | b826d1f；L1–L3/P1–P5/D1–D2/V1–V3/I1–I2/A1，公开前需 Owner 决定 |
+| R9-RES-1 | 中断回滚后可能残留空目录（快照只比文件） | OPEN | 已知残余 |
+| R9-RES-2 | 安装器目标复检无判别测试（变异 I3 存活；源预检已先拦截） | OPEN | 纵深防御，难以构造复制过程中损坏 |

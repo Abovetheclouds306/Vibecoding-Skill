@@ -109,3 +109,13 @@
 - OPEN/待决：R7-N5（Info，OPEN）；R4-N7、R4-N6 余项（待 Owner）。
 - R8 复核建议：重跑 R7 raw\atk_reconcile.py 对 HEAD；尝试“提交前未重定向、提交后才换 Junction 再换回”（现在同样保留残留，属保守的误报）。
 - NOT_RUN：文件符号链接、真实 TOCTOU 竞态、user scope、Linux/macOS、盘符根实际写入。
+
+## R9 交接（独立仓库 Abovetheclouds306/Vibecoding-Skill，PRIVATE；开发者自测，非独立 Reviewer 结论）
+- 建议复核范围：2550597..HEAD（拆仓修正后的全部功能改动）；如需含拆仓本身：64ec1d7..HEAD。
+- 全量：`python -m unittest discover -s tests -p "test_*.py"` → rc0，122 tests OK（skipped=1）。
+- vendor：`verify_manifest.py` rc0 PASS 33/0/0/0；`vb_trust.py <vendor>` rc0 PASS（固定清单 v1.2.7）。
+- 验收：项目级安装两次均 rc0（幂等）；vb_init --apply 后搬迁项目再跑 rc0（exists unchanged）；vb_gate FAIL rc1、UNKNOWN rc2（PASS rc0 由测试覆盖）。
+- 判别（基线 2550597 → HEAD）：R4-N7 默认/自校验自定义/skip 声明、json_help、安装器篡改 vendor/未登记文件在基线 FAIL；KeyboardInterrupt 用例在基线逃逸中断；R8-N1 与 extra_file 为两边均过的守护测试。
+- 变异（19 个）：H、N1a、N1b、N2、N6、E2、T1、T2、T3、S1、S2、S3、HP、K1、K2、K3、I1、I2 全 KILLED；I3（安装器目标复检恒真）SURVIVED，见 TODO R9-RES-2。
+- 建议 R9 复核另做变异：vb_trust 文件计数/未登记文件判定置空；vb_trust 改为调用被校验目录 verify_manifest；安装器 load_trust 缺失时放行；JSON help kind 字段删除。
+- NOT_RUN：文件级符号链接用例（无权限）；user scope 安装（禁止触碰真实技能目录）；Actions/CI（未启用）。
