@@ -540,6 +540,38 @@ class TestR7N4PreflightDriveRoot(R7Helper):
         self.assertEqual([p for p in problems if "越出项目目录" in p], [], problems)
 
 
+class TestR8N1NonRedirectedResidualReconciled(R7Helper):
+    """R8-N1：未重定向的补偿残留（删除失败一次），回滚时复核收敛后应撤销残留、报告已回滚。
+    该用例在当前实现上通过，用于杀死把 _resolve_residual 非重定向分支短路的变异体（mutant H）。"""
+
+    def test_R8N1_residual_reconciled_after_rollback(self):
+        hp = os.path.join(self.proj, ".vibecoding", "HANDOFF.md")
+        real = vb_init._replace
+        real_remove = os.remove
+        st = {}
+
+        def rep(src, dst):
+            if os.path.basename(dst) == "HANDOFF.md" and "commit" not in st:
+                real(src, dst)
+                st["commit"] = True
+                raise PermissionError(13, "injected after commit")
+            return real(src, dst)
+
+        def rm(path, *a, **k):
+            if os.path.basename(str(path)) == "HANDOFF.md" and "rm" not in st:
+                st["rm"] = True
+                raise PermissionError(13, "injected remove failure")
+            return real_remove(path, *a, **k)
+        with mock.patch.object(vb_init, "_replace", rep), mock.patch.object(vb_init.os, "remove", rm):
+            rc, out = self.init("--apply")
+        self.assertTrue(st.get("commit") and st.get("rm"), "场景前提：提交后失败且补偿删除失败一次\n" + out)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("Reconciled", out)
+        self.assertFalse(self.residual_lines(out, "HANDOFF.md"), "已收敛的残留不应仍报 ResidualRisk:\n" + out)
+        self.assertFalse(os.path.exists(hp), out)
+        self.assertIn("FAILED（已回滚", out)
+
+
 class TestR4N7TrustedStandard(Base):
     """R4-N7：信任判据是技能自带的固定清单哈希，不是被校验目录自带的脚本。"""
 
