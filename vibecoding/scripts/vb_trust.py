@@ -5,7 +5,9 @@
 1. 被校验目录的 `MANIFEST.sha256` 的 SHA-256 必须等于 PINNED_MANIFEST_SHA256（Vibecoding Standard v1.2.7
    签收归档的清单）；
 2. 清单登记的每个文件 SHA-256 必须与清单一致，且不得缺失；
-3. 除 `MANIFEST.sha256` 与字节码缓存外，不得有未登记文件。
+3. 除 `MANIFEST.sha256` 与 `__pycache__/` 目录外，不得有未登记文件；`__pycache__` 之外的 `.pyc/.pyo`
+   一律算未登记（R10-N1：无源 .pyc 可被同目录脚本导入）。`__pycache__` 不被信任也不被使用：
+   vb_gate 只执行从已校验字节复制到私有临时目录的 check_evidence.py，并以 `-I -B` 运行。
 全部满足才返回 0；否则返回 1。本模块只读，不执行被校验目录里的任何代码。
 
 自定义 `--standard` / `VB_STANDARD_HOME` 只改变**从哪里读**，不改变**信任什么**：
@@ -77,7 +79,7 @@ def verify_pinned(standard: str) -> tuple[int, list[str]]:
         dns[:] = [d for d in dns if d not in _SKIP_DIRS]
         for f in fns:
             rel = os.path.relpath(os.path.join(dp, f), standard).replace(os.sep, "/")
-            if rel == "MANIFEST.sha256" or rel.endswith((".pyc", ".pyo")):
+            if rel == "MANIFEST.sha256":
                 continue
             if rel not in entries:
                 extra.append(rel)
@@ -92,6 +94,28 @@ def verify_pinned(standard: str) -> tuple[int, list[str]]:
                  % ("PASS" if ok else "FAIL", STANDARD_VERSION, len(entries) - len(bad) - len(missing),
                     len(bad), len(missing), len(extra)))
     return (0 if ok else 1), lines
+
+
+def read_verified(standard: str, rel: str) -> bytes | None:
+    """R10-N2：一次读入并核对单个文件字节（清单须等于固定值、该文件哈希须等于清单登记值）。
+    返回已核对的字节；调用方只使用这份内存中的字节，不再回读目录（消除校验与执行之间的替换窗口）。"""
+    try:
+        with open(os.path.join(standard, "MANIFEST.sha256"), "rb") as fh:
+            mraw = fh.read()
+        if hashlib.sha256(mraw).hexdigest() != PINNED_MANIFEST_SHA256:
+            return None
+        expect = None
+        for line in mraw.decode("utf-8").splitlines():
+            m = _LINE.match(line.strip())
+            if m and m.group(2).strip() == rel:
+                expect = m.group(1)
+        if expect is None:
+            return None
+        with open(os.path.join(standard, *rel.split("/")), "rb") as fh:
+            data = fh.read()
+    except (OSError, UnicodeDecodeError):
+        return None
+    return data if hashlib.sha256(data).hexdigest() == expect else None
 
 
 if __name__ == "__main__":

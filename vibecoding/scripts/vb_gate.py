@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
+import tempfile
 import sys
 from datetime import datetime
 
@@ -250,14 +252,29 @@ def main(argv: list[str]) -> int:
             print("  " + line)
         print("  --standard / VB_STANDARD_HOME 只改变读取位置，不改变信任判据；结构校验记 FAIL。")
     elif standard and not args.no_write:
-        cmd = [args.python, os.path.join(standard, "tools", "check_evidence.py"), evidence_path,
-               "--task-id", args.task, "--task-status", args.task_status]
-        for r in rows:
-            cmd += ["--acceptance-id", r["id"]]
-        struct_rc, out, err = run(cmd, cwd=standard, timeout=300)
+        # R10-N1/N2：不在被定位目录里执行任何东西。只取一次已核对的 check_evidence.py 字节，写入本工具创建的
+        # 私有临时目录，以 `-I -B` 运行（-I：不把脚本目录/当前目录/用户 site 放进 sys.path，忽略 PYTHON* 环境变量；
+        # -B：不写字节码）。被定位目录中的 .pyc、同名模块或校验后的替换都不会被导入或执行。
         print("--- 标准证据门禁（check_evidence.py）---")
-        for line in (out + err).strip().splitlines():
-            print("  " + line)
+        code = vb_trust.read_verified(standard, "tools/check_evidence.py")
+        if code is None:
+            struct_rc = 1
+            print("  REFUSED（信任边界）：check_evidence.py 在校验后读取时与固定清单不符，拒绝执行；结构校验记 FAIL。")
+        else:
+            priv = tempfile.mkdtemp(prefix="vb_gate_std_")
+            try:
+                script = os.path.join(priv, "check_evidence.py")
+                with open(script, "wb") as fh:
+                    fh.write(code)
+                cmd = [args.python, "-I", "-B", script, evidence_path,
+                       "--task-id", args.task, "--task-status", args.task_status]
+                for r in rows:
+                    cmd += ["--acceptance-id", r["id"]]
+                struct_rc, out, err = run(cmd, cwd=priv, timeout=300)
+            finally:
+                shutil.rmtree(priv, True)
+            for line in (out + err).strip().splitlines():
+                print("  " + line)
     elif not standard:
         print("--- 标准证据门禁 ---")
         print("  跳过：未找到标准副本，无法调用 check_evidence.py（结论不高于 UNKNOWN）")
@@ -270,5 +287,15 @@ def main(argv: list[str]) -> int:
     return final_rc
 
 
+def _guarded_main(argv: list[str]) -> int:
+    """R10-N4：中断时给出可识别诊断与非成功退出码，不输出 traceback。"""
+    try:
+        return main(argv)
+    except KeyboardInterrupt:
+        print("INTERRUPTED: 门禁被中断，未完成；本次结论不可用（不是 PASS）。证据文件可能未写或不完整，请重跑。")
+        print("== Vibecoding 门禁: INTERRUPTED（退出码 130）==")
+        return 130
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(_guarded_main(sys.argv[1:]))
