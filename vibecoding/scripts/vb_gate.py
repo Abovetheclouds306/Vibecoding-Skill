@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""vb_gate.py — 验证证据门禁：跑命令 → 写证据 → vb_trust 固定清单核对标准副本 → 通过后才调其 check_evidence.py → 汇总退出码。
+"""vb_gate.py — 验证证据门禁：跑命令 → 写证据 → vb_trust 固定清单核对标准副本 → 通过后只以 -I -B 运行 check_evidence.py 的已核对私有副本 → 汇总退出码。
 
 语义（与 Vibecoding v1.2.7 一致，严重度 1 > 2 > 0）：
   0 = PASS    全部验证已运行且退出码 0，证据结构校验通过
@@ -103,7 +103,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--verify", action="append", default=[], help="验证命令，可重复；同一命令只跑一次")
     ap.add_argument("--evidence", help="证据文件路径（默认 .vibecoding/evidence/<TASK>.md）")
     ap.add_argument("--task-status", default="REVIEW", choices=["DONE", "REVIEW", "IN_PROGRESS", "BLOCKED"], help="任务状态；DONE 才做完整性检查")
-    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；执行其 check_evidence.py 前必须通过固定 v1.2.7 签收清单校验，否则不执行、结构校验记 FAIL）")
+    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；必须通过固定 v1.2.7 签收清单校验（__pycache__ 外的 .pyc 等未登记文件即 FAIL），否则不执行、结构校验记 FAIL；通过后也只执行复制到私有临时目录的已核对字节，以 -I -B 运行，不从该目录导入任何东西）")
     ap.add_argument("--check-standard", action="store_true", help="把固定 v1.2.7 签收清单校验（vb_trust）另记为一条验收行并参与汇总；无论是否加此参数，执行标准脚本前都会先做该校验")
     ap.add_argument("--timeout", type=int, default=900, help="单条命令超时秒数")
     ap.add_argument("--force", action="store_true", help="允许覆盖非本工具生成的证据文件")
@@ -147,7 +147,7 @@ def main(argv: list[str]) -> int:
     if args.check_standard:
         ac += 1
         if not standard:
-            rows.append({"id": "AC-%03d" % ac, "cmd": "verify_manifest.py", "rc": 2, "conclusion": "NOT_RUN", "log": "N/A", "limit": "未找到标准副本"})
+            rows.append({"id": "AC-%03d" % ac, "cmd": "vb_trust 固定清单校验", "rc": 2, "conclusion": "NOT_RUN", "log": "N/A", "limit": "未找到标准副本"})
             codes.append(2)
         else:
             rc, vlines = vb_trust.verify_pinned(standard)

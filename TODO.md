@@ -20,7 +20,7 @@
 | R4-N4 | 安装器：dest 上层分量为 Junction 时跟随写出项目外 | 自测 PASS | 6a0d17a；project scope 下项目根（不含）→dest 各分量为链接 → REFUSED rc1；user scope 的 ~ 及其上层不检查（测试禁止触碰 ~，NOT_RUN） |
 | R4-N5 | 安装器：未检查 dest 与 source 重叠 | 自测 PASS | 56c60fe；realpath 相同或互相包含 → REFUSED rc1，零写入 |
 | R4-N6 | `--json` 包装层按字面匹配 argv | 自测 PASS（pt19u 授权） | d2a83c3+9429d47+cabbf7e；`--json --help` → status ok rc0 kind=help；KeyboardInterrupt → 回滚、INTERRUPTED rc130（JSON status=interrupted）；待 R9 |
-| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | 自测 PASS（pt19u 授权） | 92d56ec+3437fcf；vb_trust 固定 v1.2.7 MANIFEST SHA-256（68d8a834…）并在不执行被校验目录代码的前提下逐文件比对；vb_init/vb_gate/安装器（源预检+目标复检）均改用；--skip-standard-check 标 SKIPPED，不再声明签收版本；待 R9 |
+| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | 自测 PASS（pt19u 授权） | 92d56ec+3437fcf；vb_trust 固定 v1.2.7 MANIFEST SHA-256（68d8a834…）并在不执行被校验目录代码的前提下逐文件比对；vb_init/vb_gate/安装器（源预检+目标复检）均改用；--skip-standard-check 标 SKIPPED，不再声明签收版本；R10 复核：vb_init/安装器 CLOSED，vb_gate 被 R10-N1（pyc）绕过，R11 修复待复核 |
 | R4-N8 | c08407d 残留报告描述不准确 | 自测 PASS | 691f4dc；补偿先 guard 后读，guard 失败不经被替换路径读取/描述，也不再宣称「本次未改动」 |
 | R4-N9 | 项目位于盘符根目录时写入全被拒 | 自测 PASS | 608118c；`_inside` 根安全（根已以分隔符结尾时不再拼接），preflight 复用 |
 | R4-N10 | 测试与清单的小缺口（清单中 ../、绝对路径键被保留等） | 自测 PASS + DOCS | ace30ec；合并时丢弃非法清单键；新增内层 Junction 指向 dest 内用例（杀 M2）。DOCS：清单无签名/认证，仅作归属记录，伪造匹配哈希可让文件被视为「本工具所有」 |
@@ -55,13 +55,26 @@
 ## R10（R9 独立复核发现修复，开发者自测，非 Reviewer 结论）
 | ID | 事项 | 状态 | 说明 |
 |---|---|---|---|
-| R9-F1 | vb_gate 执行未校验标准的 check_evidence.py | 自测 PASS | 791ac43；先 vb_trust 固定清单校验，不过则不执行、结构校验 FAIL；--standard 与 VB_STANDARD_HOME 均覆盖 |
+| R9-F1 | vb_gate 执行未校验标准的 check_evidence.py | 部分（R10：原复现关闭，pyc 绕过见 R10-N1） | 791ac43；先 vb_trust 固定清单校验，不过则不执行、结构校验 FAIL；--standard 与 VB_STANDARD_HOME 均覆盖 |
 | R9-F2 | autocrlf=true 克隆导致 vendor 校验失败 | 自测 PASS | 9a96ac1；.gitattributes（eol=lf，vendor -text），renormalize 无 blob 变化 |
 | R9-F3 | 文档/帮助与信任模型不一致 | DOCS | 7ce18bf |
 | R9-F4 | 恢复说明“重跑同一命令”实际 rc2 | 自测 PASS | 00c0054；改为“加 --force 重跑”，测试固定 rc2/rc0 行为 |
 | R9-F5 | 写入后中断仍称“未写入文件” | 自测 PASS | 1a2ef91 |
 | R9-F6 | 写入循环外中断出 traceback | 自测 PASS | 00c0054；INTERRUPTED rc130，区分写入前/后 |
-| R9-F7 | 未被杀死变异 I1/I3/T5/G1 | 自测 PASS | 791ac43、00c0054、0a0bc5b |
+| R9-F7 | 未被杀死变异 I1/I3/T5/G1 | 自测 PASS | 791ac43、00c0054、0a0bc5b（0a0bc5b 只改测试） |
 | R9-F9 | Actions 描述不实 | DOCS | 见 HANDOFF R10 段；未改仓库设置 |
 | R10-RES-1 | vb_trust 校验与执行 check_evidence 之间存在 TOCTOU 窗口 | OPEN | 本地攻击者需能在毫秒窗口内改写标准目录 |
-| R10-RES-2 | vb_trust 忽略 __pycache__/*.pyc（R9-F8，info） | OPEN | 执行时 PYTHONDONTWRITEBYTECODE 不能阻止读取既有 pyc 的理论可能，未处理 |
+| R10-RES-2 | vb_trust 忽略 __pycache__/*.pyc（R9-F8） | 更正：R10 复核实测可利用（R10-N1 High），R11 处理 | 原“理论可能/info”判断错误 |
+## R11（R10 复核发现修复，开发者自测，非 Reviewer 结论）
+| ID | 事项 | 状态 | 说明 |
+|---|---|---|---|
+| R10-N1 | 外部标准目录无源 .pyc 被 check_evidence.py 导入，伪造 PASS | 自测 PASS | 070bf45；vb_trust 把 __pycache__ 外的 .pyc/.pyo 记为未登记；vb_gate 只执行写入私有临时目录的已核对字节，`-I -B` |
+| R10-N2 | 校验与执行之间 TOCTOU | 自测 PASS | 070bf45；`vb_trust.read_verified` 一次读入并核对，执行内存字节的私有副本；mock 替换测试 |
+| R10-N3 | 文档/帮助/TODO 措辞 | DOCS | 本段提交 |
+| R10-N4 | vb_gate 中断 traceback | 自测 PASS | 070bf45；INTERRUPTED rc130 |
+| R10-N5 | F1b/F1f/F2a/F2b 变异存活 | 自测 PASS | 070bf45 |
+| R10-N6 | HANDOFF 0a0bc5b 描述 | DOCS | 已更正：0a0bc5b 只改测试 |
+| R11-G | user scope 测试真实 HOME 防护 | 自测 PASS | 1beb807；HOME 不在测试临时目录内即硬失败、不运行安装器 |
+| R11-RES-1 | 私有临时目录在执行期间可被同一用户进程改写 | OPEN | 同用户本地攻击者已可直接改技能本身，不在威胁模型内 |
+| R11-RES-2 | `__pycache__/` 内文件仍被 vb_trust 容忍 | OPEN（设计决定） | 不被执行：vb_gate 不从标准目录导入；verify_manifest 自身会生成该缓存 |
+| R11-RES-3 | --python 指定的解释器由调用者信任 | OPEN | 文档已说明 |

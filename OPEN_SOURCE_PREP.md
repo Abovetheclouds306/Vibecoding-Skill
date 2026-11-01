@@ -29,6 +29,9 @@
 | R9-f | 再分发许可 | 需 Standard 所有者书面确认允许随技能再分发 vendor 副本（同 L2） | 阻断公开 | Owner 决定 |
 | R9-g | 卸载 | 无卸载说明/命令（同 I2）：手工删除目标技能目录（含 `.vibecoding-install.json`）即可；项目内 `.vibecoding/` 与 AGENTS 注入块需手工移除 | 低 | 公开前写入 README |
 
+| R10-a | 安全模型（R10-N1） | 外部标准目录的无源 .pyc 曾可被执行；R11 改为只执行已核对字节的私有副本（-I -B），vb_trust 拒绝 __pycache__ 外的 .pyc | 高（已修待复核） | 公开前写 SECURITY 说明：信任根、--standard 语义、__pycache__ 容忍、--python 由调用者信任 |
+| R10-b | TOCTOU（R10-N2） | 校验与执行分离的窗口已通过内存字节+私有副本消除；私有临时目录对同一用户进程仍可写 | 中 | 在 SECURITY 说明中写明威胁模型边界 |
+
 ## 已在本轮修复的平凡问题
 
 - 拆仓导致的路径/命令：`AGENTS.md`、`vibecoding/README.md` 安装命令、`TODO.md` 路径说明、`tests/test_install_skill.py` 文档串（提交 2550597）。
