@@ -101,14 +101,14 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--project", default=".", help="项目目录")
     ap.add_argument("--task", required=True, help="任务 ID（用于证据文件名与 Task 字段）")
     ap.add_argument("--verify", action="append", default=[], help="验证命令，可重复；同一命令只跑一次")
-    ap.add_argument("--evidence", help="证据文件路径（默认 .vibecoding/evidence/<TASK>.md）")
+    ap.add_argument("--evidence", help="证据文件路径（默认 .vibecoding/evidence/<TASK>.md）；相对路径按当前工作目录解析为绝对路径")
     ap.add_argument("--task-status", default="REVIEW", choices=["DONE", "REVIEW", "IN_PROGRESS", "BLOCKED"], help="任务状态；DONE 才做完整性检查")
     ap.add_argument("--standard", help="标准副本目录（只改变读取位置；必须通过固定 v1.2.7 签收清单校验（__pycache__ 外的 .pyc 等未登记文件即 FAIL），否则不执行、结构校验记 FAIL；通过后也只执行复制到私有临时目录的已核对字节，以 -I -B 运行，不从该目录导入任何东西）")
     ap.add_argument("--check-standard", action="store_true", help="把固定 v1.2.7 签收清单校验（vb_trust）另记为一条验收行并参与汇总；无论是否加此参数，执行标准脚本前都会先做该校验")
     ap.add_argument("--timeout", type=int, default=900, help="单条命令超时秒数")
     ap.add_argument("--force", action="store_true", help="允许覆盖非本工具生成的证据文件")
     ap.add_argument("--no-write", action="store_true", help="只跑命令、不写证据文件")
-    ap.add_argument("--python", default=sys.executable, help="运行（已通过可信校验的）标准 check_evidence.py 的解释器")
+    ap.add_argument("--python", default=sys.executable, help="运行（已通过可信校验的）标准 check_evidence.py 的解释器。调用方信任：本工具不校验该解释器本身，指定即视为你信任它")
     args = ap.parse_args(argv)
 
     project = os.path.abspath(args.project)
@@ -122,7 +122,8 @@ def main(argv: list[str]) -> int:
         if cmd not in seen:
             seen.append(cmd)
 
-    evidence_path = args.evidence or os.path.join(project, ".vibecoding", "evidence", "%s.md" % args.task)
+    # R11-N4：相对 --evidence 按 cwd 解析为绝对路径（避免 makedirs("") 异常、子进程 cwd 不同导致结构校验找不到文件）
+    evidence_path = os.path.abspath(args.evidence) if args.evidence else os.path.join(project, ".vibecoding", "evidence", "%s.md" % args.task)
     logs_dir = os.path.join(os.path.dirname(evidence_path), "logs")
 
     if os.path.exists(evidence_path) and not args.no_write:

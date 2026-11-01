@@ -370,5 +370,72 @@ class TestR10GitAttributes(unittest.TestCase):
         self.assertIn("tools/install_skill.py: eol: lf", out)
 
 
+class TestR11N4RelativeEvidence(GateTrustBase):
+    """R11-N4：相对 --evidence（ev.md / sub/ev.md）按 cwd 解析，不回溯、结构校验不因子进程 cwd 不同而 FAIL。"""
+    def check(self, rel):
+        rc, out = self.gate("--evidence", rel, "--standard", VENDOR)
+        self.assertNotIn("Traceback", out)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("门禁: PASS", out)
+        self.assertTrue(os.path.isfile(os.path.join(self.proj, rel)), out)
+
+    def test_bare_relative_file(self):
+        self.check("ev.md")
+
+    def test_relative_subdir_file(self):
+        self.check(os.path.join("sub", "ev.md"))
+
+
+class TestR11N2ChildIsolation(GateTrustBase):
+    """R11-N2：check_evidence 子进程必须是 -I（不加载用户 site 的 usercustomize/.pth）；私有临时目录必须删除。"""
+    def test_user_site_hooks_not_run_in_child(self):
+        fake = os.path.join(self.tmp, "fakeuser")
+        os.makedirs(fake)
+        env = {"APPDATA": fake, "HOME": fake, "USERPROFILE": fake, "PYTHONUSERBASE": os.path.join(fake, "ub")}
+        probe = subprocess.run([sys.executable, "-c", "import site;print(int(bool(site.ENABLE_USER_SITE)));print(site.getusersitepackages())"],
+                               capture_output=True, env=dict(os.environ, **env), text=True)
+        lines = probe.stdout.splitlines()
+        if probe.returncode != 0 or not lines or lines[0] != "1":
+            self.skipTest("NOT_RUN: 本解释器未启用用户 site")
+        usp = lines[1]
+        self.assertTrue(os.path.normcase(usp).startswith(os.path.normcase(fake)), usp)  # 绝不写真实用户 site
+        os.makedirs(usp)
+        m1 = os.path.join(self.tmp, "child_marker")
+        m2 = os.path.join(self.tmp, "control_marker")
+        hook = ("import os, sys\n"
+                "open(%r, 'a').write('x')\n"
+                "if 'check_evidence' in (sys.argv[0] if sys.argv else ''): open(%r, 'a').write('x')\n") % (m2, m1)
+        with open(os.path.join(usp, "usercustomize.py"), "w") as fh:
+            fh.write(hook)
+        with open(os.path.join(usp, "vbtest.pth"), "w") as fh:
+            fh.write("import os, sys; open(%r, 'a').write('p'); 'check_evidence' in (sys.argv[0] if sys.argv else '') and open(%r, 'a').write('p')\n" % (m2, m1))
+        rc, out = self.gate("--standard", VENDOR, env_extra=env)
+        self.assertTrue(os.path.exists(m2), "对照失败：用户 site 钩子未在任何进程中加载，测试无效\n" + out)
+        self.assertFalse(os.path.exists(m1), "check_evidence 子进程加载了用户 site 钩子（应为 -I）\n" + out)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("门禁: PASS", out)
+
+    def leftovers(self, d):
+        return [n for n in os.listdir(d) if n.startswith("vb_gate_std_")]
+
+    def test_private_dir_removed(self):
+        ttemp = os.path.join(self.tmp, "ttemp")
+        os.makedirs(ttemp)
+        env = {"TEMP": ttemp, "TMP": ttemp, "TMPDIR": ttemp}
+        rc, out = self.gate("--standard", VENDOR, env_extra=env)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("结构校验", out)
+        self.assertEqual(self.leftovers(ttemp), [], out)
+
+    def test_private_dir_removed_when_child_crashes(self):
+        ttemp = os.path.join(self.tmp, "ttemp")
+        os.makedirs(ttemp)
+        env = {"TEMP": ttemp, "TMP": ttemp, "TMPDIR": ttemp}
+        rc, out = self.gate("--standard", VENDOR, "--python", os.path.join(self.tmp, "no-such-python.exe"), env_extra=env)
+        self.assertNotEqual(rc, 0, out)
+        self.assertNotIn("门禁: PASS", out)
+        self.assertEqual(self.leftovers(ttemp), [], out)
+
+
 if __name__ == "__main__":
     unittest.main()
