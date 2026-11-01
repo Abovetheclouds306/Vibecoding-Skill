@@ -17,6 +17,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -24,6 +25,26 @@ import unittest
 from unittest import mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+# R11-N6：测试不得在工作树生成 __pycache__（含子进程），临时目录必须真正删除（git 只读对象也删），残留即报错。
+sys.dont_write_bytecode = True
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+
+def _rm_tree(path):
+    def onerr(func, p, exc):
+        try:
+            os.chmod(p, stat.S_IWRITE)
+            func(p)
+        except OSError:
+            pass
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=onerr)
+    else:
+        shutil.rmtree(path, onerror=onerr)
+    if os.path.exists(path):
+        raise AssertionError("测试临时目录未清理: %s" % path)
 SKILL_ROOT = os.path.abspath(os.path.join(HERE, "..", "vibecoding"))
 SCRIPT = os.path.join(SKILL_ROOT, "scripts", "vb_init.py")
 VENDOR_SRC = os.path.join(SKILL_ROOT, "vendor", "vibecoding-standard")
@@ -105,7 +126,7 @@ class Base(unittest.TestCase):
         self.tmp = tempfile.mkdtemp(prefix="vbfix-")
         self.proj = os.path.join(self.tmp, "proj")
         os.makedirs(self.proj, exist_ok=True)
-        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.addCleanup(_rm_tree, self.tmp)
 
     def write(self, rel, text):
         p = os.path.join(self.proj, rel)
@@ -411,7 +432,7 @@ class TestScopeRedLines(unittest.TestCase):
     def test_vendor_untouched_by_fix(self):
         """vendored 标准副本不得被本修复改动（比对 MANIFEST 自校验）"""
         vendor = os.path.join(SKILL_ROOT, "vendor", "vibecoding-standard")
-        rc = subprocess.run([sys.executable, os.path.join(vendor, "tools", "verify_manifest.py")],
+        rc = subprocess.run([sys.executable, "-B", os.path.join(vendor, "tools", "verify_manifest.py")],
                             cwd=vendor, capture_output=True)
         self.assertEqual(rc.returncode, 0, (rc.stdout + rc.stderr).decode("utf-8", "replace"))
 

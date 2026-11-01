@@ -15,10 +15,32 @@ import io
 import json
 import os
 import shutil
+import stat
+import sys
 import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+# R11-N6：测试不得在工作树生成 __pycache__（含子进程），临时目录必须真正删除（git 只读对象也删），残留即报错。
+sys.dont_write_bytecode = True
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+
+def _rm_tree(path):
+    def onerr(func, p, exc):
+        try:
+            os.chmod(p, stat.S_IWRITE)
+            func(p)
+        except OSError:
+            pass
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=onerr)
+    else:
+        shutil.rmtree(path, onerror=onerr)
+    if os.path.exists(path):
+        raise AssertionError("测试临时目录未清理: %s" % path)
 SKILL_ROOT = os.path.abspath(os.path.join(HERE, "..", "vibecoding"))
 SCRIPT = os.environ.get("VB_INIT_UNDER_TEST") or os.path.join(SKILL_ROOT, "scripts", "vb_init.py")
 ASSET = os.path.join(SKILL_ROOT, "assets", "AGENTS.block.md")
@@ -59,7 +81,7 @@ def norm(b: bytes) -> str:
 class Base(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="vbcli-")
-        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.addCleanup(_rm_tree, self.tmp)
         self.proj = os.path.join(self.tmp, "proj")
         os.makedirs(self.proj)
 

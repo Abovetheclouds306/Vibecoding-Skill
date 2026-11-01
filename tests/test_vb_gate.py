@@ -11,6 +11,7 @@ import io
 import os
 import py_compile
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -18,6 +19,26 @@ import unittest
 from unittest import mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+# R11-N6：测试不得在工作树生成 __pycache__（含子进程），临时目录必须真正删除（git 只读对象也删），残留即报错。
+sys.dont_write_bytecode = True
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+
+def _rm_tree(path):
+    def onerr(func, p, exc):
+        try:
+            os.chmod(p, stat.S_IWRITE)
+            func(p)
+        except OSError:
+            pass
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=onerr)
+    else:
+        shutil.rmtree(path, onerror=onerr)
+    if os.path.exists(path):
+        raise AssertionError("测试临时目录未清理: %s" % path)
 REPO = os.path.dirname(HERE)
 VENDOR = os.path.join(REPO, "vibecoding", "vendor", "vibecoding-standard")
 GATE = os.environ.get("VB_GATE_UNDER_TEST") or os.path.join(REPO, "vibecoding", "scripts", "vb_gate.py")
@@ -47,7 +68,7 @@ def crafted_standard(root):
     assert hit == 1, "场景前提：清单中有且仅有一行 tools/check_evidence.py"
     with open(man, "wb") as fh:
         fh.write("".join(lines).encode("utf-8"))
-    r = subprocess.run([sys.executable, os.path.join(std, "tools", "verify_manifest.py")], cwd=std,
+    r = subprocess.run([sys.executable, "-B", os.path.join(std, "tools", "verify_manifest.py")], cwd=std,
                        capture_output=True)
     assert r.returncode == 0, "场景前提：自洽篡改目录的自带校验应 PASS"
     return std
@@ -56,7 +77,7 @@ def crafted_standard(root):
 class GateTrustBase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="vbgate_")
-        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.addCleanup(_rm_tree, self.tmp)
         self.proj = os.path.join(self.tmp, "proj")
         os.makedirs(self.proj)
         self.marker = os.path.join(self.tmp, "MARKER")
@@ -189,7 +210,7 @@ class TestR10N1PycPlants(GateTrustBase):
 class TestR10TrustWalk(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="vbtrust_")
-        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.addCleanup(_rm_tree, self.tmp)
         self.std = real_copy(self.tmp)
         spec = importlib.util.spec_from_file_location("vb_trust_t", os.path.join(os.path.dirname(GATE), "vb_trust.py"))
         self.trust = importlib.util.module_from_spec(spec)

@@ -15,7 +15,9 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -32,6 +34,29 @@ inst = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(inst)
 
 MANIFEST = ".vibecoding-install.json"
+
+sys.dont_write_bytecode = True                 # R11-N6
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+
+def _home_dirs():
+    return [os.path.expanduser("~"), os.environ.get("HOME"), os.environ.get("USERPROFILE")]
+
+
+def run_installer(tmp, argv):
+    """R11-N5：本文件中**唯一**调用安装器的入口（元测试强制）。不论 scope 写法（--scope user /
+    --scope=user / 其他），只要 HOME、USERPROFILE 或 expanduser("~") 任一不在本用例临时目录内，就硬失败、
+    不运行安装器。"""
+    root = os.path.normcase(os.path.realpath(tmp)) + os.sep
+    for h in _home_dirs():
+        if h is None:
+            continue
+        if not os.path.normcase(os.path.realpath(h)).startswith(root):
+            raise AssertionError("REFUSED: 安装器测试的 HOME 解析为测试临时目录之外 %s（须用临时假 HOME/USERPROFILE）" % h)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = inst.main(argv)
+    return rc, buf.getvalue()
 
 
 def sha(p):
@@ -79,6 +104,12 @@ class Base(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="vbins-")
         self.addCleanup(self._cleanup)
+        # R11-N5：每个用例默认在临时假 HOME 下运行
+        home = os.path.join(self.tmp, "home")
+        os.makedirs(home)
+        envp = mock.patch.dict(os.environ, {"HOME": home, "USERPROFILE": home})
+        envp.start()
+        self.addCleanup(envp.stop)
         self.src = os.path.join(self.tmp, "src", "vibecoding")
         self.make_source({"SKILL.md": "skill v1\n", "references/a.md": "A1\n", "scripts/s.py": "print(1)\n"})
         self.proj = os.path.join(self.tmp, "proj")
@@ -95,7 +126,17 @@ class Base(unittest.TestCase):
                 p = os.path.join(dp, d)
                 if inst_is_link(p):
                     remove_link(p)
-        shutil.rmtree(self.tmp, True)
+
+        def onerr(func, p, exc):
+            try:
+                os.chmod(p, stat.S_IWRITE)
+                func(p)
+            except OSError:
+                pass
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(self.tmp, onexc=onerr)
+        else:
+            shutil.rmtree(self.tmp, onerror=onerr)
 
     def write(self, p, text):
         os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -116,22 +157,10 @@ class Base(unittest.TestCase):
             self.write(os.path.join(vend, "tools", "verify_manifest.py"),
                        "import sys\nprint('stub verify PASS')\nsys.exit(0)\n")
 
-    def assert_fake_home(self):
-        """R10 事故防护：user scope 必须解析到本测试临时目录内的假 HOME，否则硬失败、不运行安装器。"""
-        home = os.path.normcase(os.path.realpath(os.path.expanduser("~")))
-        tmp = os.path.normcase(os.path.realpath(self.tmp))
-        if not home.startswith(tmp + os.sep):
-            raise AssertionError("REFUSED: user scope 测试的 HOME 解析为真实目录 %s（须设置临时假 HOME/USERPROFILE）" % home)
-
     def install(self, *extra, source=None):
-        if "user" in extra:
-            self.assert_fake_home()
         argv = ["--target", "claude-code", "--scope", "project", "--project", self.proj,
                 "--path", "skills", "--source", source or self.src, *extra]
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = inst.main(argv)
-        return rc, buf.getvalue()
+        return run_installer(self.tmp, argv)
 
 
 def inst_is_link(p):
@@ -340,10 +369,7 @@ class TestR4N1FileOccupiesDir(Base):
 
 class R7Helper(Base):
     def run_argv(self, argv):
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = inst.main(argv)
-        return rc, buf.getvalue()
+        return run_installer(self.tmp, argv)
 
 class TestR4N4AncestorLink(R7Helper):
     def test_R4N4_ancestor_junction_refused(self):
@@ -605,20 +631,49 @@ class TestR9Findings(Base):
         self.assertFalse(os.path.exists(self.dest))
 
 
-class TestR11UserScopeHomeGuard(Base):
+class TestR11UserScopeHomeGuard(R7Helper):
     def fake_home(self):
         home = os.path.join(self.tmp, "fakehome")
         os.makedirs(home)
         return mock.patch.dict(os.environ, {"HOME": home, "USERPROFILE": home}), home
 
-    def test_guard_refuses_real_home(self):
-        real = os.path.join(os.path.expanduser("~"), ".claude")
-        before = os.path.exists(real) and snapshot(real)
+    def outside_home(self, keys=("HOME", "USERPROFILE")):
+        # 模拟“真实 HOME”：本用例临时目录之外的另一个临时目录（绝不使用真实家目录）
+        other = tempfile.mkdtemp(prefix="vbins-otherhome-")
+        self.addCleanup(shutil.rmtree, other, True)
+        return mock.patch.dict(os.environ, {k: other for k in keys})
+
+    def assert_refused(self, call):
         with mock.patch.object(inst, "main", side_effect=AssertionError("installer must not run")):
             with self.assertRaises(AssertionError) as cm:
-                self.install("--scope", "user")
+                call()
         self.assertIn("REFUSED", str(cm.exception))
-        self.assertEqual(before, os.path.exists(real) and snapshot(real))
+
+    def test_guard_refuses_real_home(self):
+        with self.outside_home():
+            self.assert_refused(lambda: self.install("--scope", "user"))
+
+    def test_guard_refuses_scope_equals_form(self):
+        with self.outside_home():
+            self.assert_refused(lambda: self.install("--scope=user"))
+
+    def test_guard_refuses_run_argv_entry(self):
+        with self.outside_home():
+            self.assert_refused(lambda: self.run_argv(["--target", "claude-code", "--scope=user",
+                                                       "--source", self.src]))
+
+    def test_guard_refuses_even_project_scope(self):
+        with self.outside_home():
+            self.assert_refused(lambda: self.install())
+
+    def test_guard_checks_each_home_variable(self):
+        for key in ("HOME", "USERPROFILE"):
+            with self.subTest(key=key), self.outside_home((key,)):
+                self.assert_refused(lambda: self.install("--scope=user"))
+
+    def test_default_case_home_is_fake(self):
+        root = os.path.normcase(os.path.realpath(self.tmp)) + os.sep
+        self.assertTrue(os.path.normcase(os.path.realpath(os.path.expanduser("~"))).startswith(root))
 
     def test_user_scope_writes_only_inside_fake_home(self):
         ctx, home = self.fake_home()
@@ -628,6 +683,32 @@ class TestR11UserScopeHomeGuard(Base):
         files = snapshot(home)
         self.assertTrue(any(k.endswith("vibecoding/SKILL.md") for k in files), files)
         self.assertFalse(os.path.exists(self.dest))
+
+
+class TestR11InstallerEntryMeta(unittest.TestCase):
+    """R11-N5 元测试：测试代码不得绕过 run_installer 直接调用安装器。"""
+    def test_no_direct_installer_invocation(self):
+        main_call = re.compile(r"\binst\s*\.\s*main\s*\(")
+        bypass = [re.compile(p) for p in (r"getattr\(\s*inst\s*,\s*[\"']main",
+                                          r"(subprocess|runpy|os\.system|Popen)[^\n]*(INSTALLER|install_skill)",  # meta-self
+                                          r"run_path\([^\n]*(INSTALLER|install_skill)")]
+        hits = []
+        for name in sorted(os.listdir(HERE)):
+            if not name.endswith(".py"):
+                continue
+            with open(os.path.join(HERE, name), encoding="utf-8") as fh:
+                text = fh.read()
+            for n, line in enumerate(text.splitlines(), 1):
+                if line.rstrip().endswith("# meta-self"):
+                    continue
+                if main_call.search(line) and not (name == "test_install_skill.py" and line.strip() == "rc = inst.main(argv)"):  # meta-self
+                    hits.append("%s:%d %s" % (name, n, line.strip()))
+                if any(b.search(line) for b in bypass) and "re.compile" not in line:
+                    hits.append("%s:%d %s" % (name, n, line.strip()))
+            if name == "test_install_skill.py":
+                self.assertEqual(sum(1 for l in text.splitlines() if l.strip() == "rc = inst.main(argv)"), 1,  # meta-self
+                                 "inst.main 只能出现在 run_installer 中一次")
+        self.assertEqual(hits, [], "存在绕过 run_installer 的安装器调用")
 
 
 if __name__ == "__main__":
