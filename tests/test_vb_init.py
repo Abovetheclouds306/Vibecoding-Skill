@@ -833,6 +833,8 @@ class TestN1CompensateBoundary(Base):
     def assert_injected(self, st):
         self.assertTrue(st["fired"], "注入未命中真实执行路径，用例无效")
         if st.get("swap_requested"):
+            if not st["swap"] and os.name != "nt":
+                self.skipTest("NOT_RUN: Junction 仅 Windows 可用（R12-L1：非 Windows 平台此用例不适用，不视为通过）")
             self.assertTrue(st["swap"], "Junction 未创建，用例无效")
 
     def write_outside(self, ext, name, data=None):
