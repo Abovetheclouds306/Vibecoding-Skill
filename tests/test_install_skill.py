@@ -116,7 +116,16 @@ class Base(unittest.TestCase):
             self.write(os.path.join(vend, "tools", "verify_manifest.py"),
                        "import sys\nprint('stub verify PASS')\nsys.exit(0)\n")
 
+    def assert_fake_home(self):
+        """R10 事故防护：user scope 必须解析到本测试临时目录内的假 HOME，否则硬失败、不运行安装器。"""
+        home = os.path.normcase(os.path.realpath(os.path.expanduser("~")))
+        tmp = os.path.normcase(os.path.realpath(self.tmp))
+        if not home.startswith(tmp + os.sep):
+            raise AssertionError("REFUSED: user scope 测试的 HOME 解析为真实目录 %s（须设置临时假 HOME/USERPROFILE）" % home)
+
     def install(self, *extra, source=None):
+        if "user" in extra:
+            self.assert_fake_home()
         argv = ["--target", "claude-code", "--scope", "project", "--project", self.proj,
                 "--path", "skills", "--source", source or self.src, *extra]
         buf = io.StringIO()
@@ -593,6 +602,31 @@ class TestR9Findings(Base):
         os.remove(os.path.join(self.vend(self.src), "tools", "check_evidence.py"))
         rc, out = self.install()
         self.assertEqual(rc, 1, out)
+        self.assertFalse(os.path.exists(self.dest))
+
+
+class TestR11UserScopeHomeGuard(Base):
+    def fake_home(self):
+        home = os.path.join(self.tmp, "fakehome")
+        os.makedirs(home)
+        return mock.patch.dict(os.environ, {"HOME": home, "USERPROFILE": home}), home
+
+    def test_guard_refuses_real_home(self):
+        real = os.path.join(os.path.expanduser("~"), ".claude")
+        before = os.path.exists(real) and snapshot(real)
+        with mock.patch.object(inst, "main", side_effect=AssertionError("installer must not run")):
+            with self.assertRaises(AssertionError) as cm:
+                self.install("--scope", "user")
+        self.assertIn("REFUSED", str(cm.exception))
+        self.assertEqual(before, os.path.exists(real) and snapshot(real))
+
+    def test_user_scope_writes_only_inside_fake_home(self):
+        ctx, home = self.fake_home()
+        with ctx:
+            rc, out = self.install("--scope", "user")
+        self.assertEqual(rc, 0, out)
+        files = snapshot(home)
+        self.assertTrue(any(k.endswith("vibecoding/SKILL.md") for k in files), files)
         self.assertFalse(os.path.exists(self.dest))
 
 
