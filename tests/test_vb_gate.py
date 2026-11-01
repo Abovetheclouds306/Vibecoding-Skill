@@ -291,6 +291,28 @@ class TestR11ExecIsolation(GateTrustBase):
         self.assertIn("门禁: PASS", out)
 
 
+class TestR11SwapAfterRead(GateTrustBase):
+    def test_swap_after_read_verified_not_executed(self):
+        """杀“从被定位目录执行”：读取已核对字节之后再替换磁盘文件，执行的必须仍是已核对字节。"""
+        std = real_copy(self.tmp)
+        mod = load_gate()
+        real = mod.vb_trust.read_verified
+
+        def read_then_swap(d, rel):
+            data = real(d, rel)
+            with open(os.path.join(std, "tools", "check_evidence.py"), "w", encoding="utf-8") as fh:
+                fh.write(EVIL)
+            return data
+        buf = io.StringIO()
+        with mock.patch.object(mod.vb_trust, "read_verified", read_then_swap), \
+                mock.patch.dict(os.environ, {"VB_TEST_MARKER": self.marker}), contextlib.redirect_stdout(buf):
+            mod.main(["--project", self.proj, "--task", "T1", "--standard", std,
+                      "--verify", '"%s" "%s"' % (sys.executable, self.ok)])
+        out = buf.getvalue()
+        self.assertFalse(os.path.exists(self.marker), "读取后被替换的磁盘文件被执行了:\n" + out)
+        self.assertIn("门禁: PASS", out)
+
+
 class TestR10N4GateInterrupt(unittest.TestCase):
     def test_keyboard_interrupt_diagnostic(self):
         r = subprocess.run([sys.executable, "-c",
