@@ -20,8 +20,10 @@ verify_manifest.py。校验器缺失时拒绝安装（fail closed）。源副本
 
 中途失败（无跨文件原子性）：逐文件写入使用临时文件 + 替换，单个文件不会半写；但若在第 N 个文件处失败
 或被中断（Ctrl+C，退出码 130），前 N-1 个文件已落盘、不会回滚，安装清单可能尚未更新。输出会列出已写入的
-文件。恢复：修复原因后重新运行同一安装命令（幂等，内容相同的文件跳过；已登记且未被改过的文件可用 --force
-更新）；或手工删除输出中列出的文件。安装器从不删除文件。
+文件。恢复：修复原因后重新运行同一安装命令并加 --force（R9-F4：目标目录已存在且清单可能未更新，不加 --force
+会判为 NEED_DECISION、退出码 2；已写入且与源一致的文件按“一致”跳过；--force 不覆盖用户文件或被改过的文件）；
+或手工删除输出中列出的文件。安装器从不删除文件。写入循环之外（校验/预检/安装后复检）被中断同样退出码 130，
+并说明是否已有文件写入。
 
 退出码：0 = 成功/无变化；1 = 拒绝（边界/链接/源异常）、写入失败或校验失败；
 2 = 需要人工决定（目标与源不同但未加 --force，或存在归属不明的冲突）。
@@ -236,7 +238,27 @@ def write_file(dest: str, rel: str, data: bytes) -> None:
         raise
 
 
+RECOVERY = "恢复：修复原因后重跑同一命令并加 --force（目标目录已存在且安装清单可能未更新，不加 --force 会判为 NEED_DECISION、退出码 2；已写入且与源一致的文件按“一致”跳过，--force 也不覆盖用户文件或被改过的文件），或手工删除上列文件；无跨文件原子性。"
+_PHASE = {"written": None}   # R9-F6：写入循环完成后记录已写入文件数，供写入循环之外的中断诊断
+
+
 def main(argv):
+    _PHASE["written"] = None
+    try:
+        return _main(argv)
+    except KeyboardInterrupt:  # R9-F6：写入循环之外（源校验/预检/安装后复检）的中断，不输出 traceback
+        n = _PHASE["written"]
+        if n is None:
+            print("INTERRUPTED: 安装被中断（发生在写入前的校验/预检阶段），未写入任何文件。")
+        else:
+            print("INTERRUPTED: 安装被中断（发生在写入之后的安装后校验阶段）；已写入 %d 个文件，未回滚，"
+                  "安装未经校验，不是完整安装。" % n)
+            print("  %s" % RECOVERY)
+        print("== 结论: INTERRUPTED（安装未完成，退出码 130）==")
+        return 130
+
+
+def _main(argv):
     ap = argparse.ArgumentParser(description="安装 vibecoding 技能")
     ap.add_argument("--target", required=True, choices=sorted(TARGETS), help="目标平台目录约定")
     ap.add_argument("--scope", default="project", choices=["project", "user"])
@@ -398,16 +420,17 @@ def main(argv):
     except (OSError, BoundaryError) as exc:
         print("ERROR: 安装中途失败: %s: %s" % (type(exc).__name__, exc))
         print("  已写入 %d 个文件（未回滚，未删除任何文件）: %s" % (len(written), written[:10]))
-        print("  恢复：修复原因后重跑同一命令（幂等），或手工删除上列文件；无跨文件原子性。")
+        print("  %s" % RECOVERY)
         print("== 结论: FAILED（安装未完成，退出码 1）==")
         return 1
     except KeyboardInterrupt:
         print("INTERRUPTED: 安装被中断，未完成。")
         print("  已写入 %d 个文件（未回滚，未删除任何文件）: %s" % (len(written), written[:10]))
-        print("  恢复：重跑同一命令（幂等），或手工删除上列文件；无跨文件原子性。")
+        print("  %s" % RECOVERY)
         print("== 结论: INTERRUPTED（安装未完成，退出码 130）==")
         return 130
 
+    _PHASE["written"] = len(changes)
     if changes:
         print("  已写入 %d 个文件（新增 %d，更新 %d）" % (len(changes), len(plan["create"]), len(plan["update"])))
     else:

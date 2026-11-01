@@ -508,5 +508,86 @@ class TestR4N7VendorExtraFile(Base):
         self.assertFalse(os.path.exists(self.dest))
 
 
+class TestR9Findings(Base):
+    """R9-F4/F6/F7：恢复路径、写入循环外中断、以及 R9 指出的未被测试杀死的变体（I1/I3/T5）。"""
+
+    def vend(self, root):
+        return os.path.join(root, "vendor", "vibecoding-standard")
+
+    def test_f4_recovery_after_interrupt_needs_force(self):
+        real = inst.write_file
+        n = {"c": 0}
+
+        def wf(*a, **k):
+            n["c"] += 1
+            if n["c"] == 2:
+                raise KeyboardInterrupt
+            return real(*a, **k)
+        with mock.patch.object(inst, "write_file", wf):
+            rc, out = self.install()
+        self.assertEqual(rc, 130, out)
+        self.assertIn("--force", out)
+        rc2, out2 = self.install()
+        self.assertEqual(rc2, 2, out2)       # 文档如实说明：不加 --force 会 NEED_DECISION
+        rc3, out3 = self.install("--force")
+        self.assertEqual(rc3, 0, out3)
+        self.assertEqual(snapshot(self.src), {k: v for k, v in snapshot(self.dest).items() if k != MANIFEST})
+
+    def _trust_raising_on(self, nth):
+        real = inst.load_trust(os.path.dirname(INSTALLER))
+        calls = {"c": 0}
+
+        class T:
+            def __getattr__(self, name):
+                return getattr(real, name)
+
+            def verify_pinned(self, d):
+                calls["c"] += 1
+                if calls["c"] == nth:
+                    raise KeyboardInterrupt
+                return real.verify_pinned(d)
+        return mock.patch.object(inst, "load_trust", lambda here: T())
+
+    def test_f6_interrupt_before_write_no_traceback(self):
+        with self._trust_raising_on(1):
+            rc, out = self.install()
+        self.assertEqual(rc, 130, out)
+        self.assertIn("INTERRUPTED", out)
+        self.assertIn("未写入任何文件", out)
+        self.assertNotIn("安装完成", out)
+        self.assertFalse(os.path.exists(self.dest))
+
+    def test_f6_interrupt_after_write_reports_written(self):
+        with self._trust_raising_on(2):
+            rc, out = self.install()
+        self.assertEqual(rc, 130, out)
+        self.assertIn("INTERRUPTED", out)
+        self.assertIn("已写入", out)
+        self.assertNotIn("未写入任何文件", out)
+        self.assertNotIn("安装完成", out)
+        self.assertTrue(os.path.exists(self.dest))
+
+    def test_i1_missing_trust_module_refused(self):
+        with mock.patch.object(inst, "load_trust", lambda here: None):
+            rc, out = self.install()
+        self.assertEqual(rc, 1, out)
+        self.assertIn("REFUSED", out)
+        self.assertFalse(os.path.exists(self.dest))
+
+    def test_i3_user_file_in_installed_vendor_fails_force(self):
+        rc, out = self.install()
+        self.assertEqual(rc, 0, out)
+        self.write(os.path.join(self.vend(self.dest), "templates", "user-note.md"), "mine\n")
+        rc2, out2 = self.install("--force")
+        self.assertEqual(rc2, 1, out2)
+        self.assertNotIn("安装完成", out2)
+
+    def test_t5_missing_vendor_file_refused(self):
+        os.remove(os.path.join(self.vend(self.src), "tools", "check_evidence.py"))
+        rc, out = self.install()
+        self.assertEqual(rc, 1, out)
+        self.assertFalse(os.path.exists(self.dest))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
