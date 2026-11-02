@@ -107,7 +107,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--check-standard", action="store_true", help="把固定 v1.2.8 签收清单校验（vb_trust）另记为一条验收行并参与汇总；无论是否加此参数，执行标准脚本前都会先做该校验")
     ap.add_argument("--timeout", type=int, default=900, help="单条命令超时秒数")
     ap.add_argument("--force", action="store_true", help="允许覆盖非本工具生成的证据文件")
-    ap.add_argument("--no-write", action="store_true", help="只跑命令、不写证据文件")
+    ap.add_argument("--no-write", action="store_true", help="只跑命令、不写证据 .md 文件（命令输出日志仍写入证据目录下 logs/）；不做标准结构校验，因此结论最高为 UNKNOWN(2)，不能作为通过证据")
     ap.add_argument("--python", default=sys.executable, help="运行（已通过可信校验的）标准 check_evidence.py 的解释器。调用方信任：本工具不校验该解释器本身，指定即视为你信任它")
     args = ap.parse_args(argv)
 

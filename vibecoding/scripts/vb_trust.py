@@ -47,7 +47,7 @@ def _sha256(path: str) -> str:
 
 
 def verify_pinned(standard: str) -> tuple[int, list[str]]:
-    """返回 (rc, 说明行)。rc 0 = 与固定 v%s 清单逐文件一致；1 = 不一致或无法证明。""" % STANDARD_VERSION
+    """返回 (rc, 说明行)。rc 0 = 与固定 STANDARD_VERSION 清单逐文件一致；1 = 不一致或无法证明。"""
     lines: list[str] = []
     mpath = os.path.join(standard, "MANIFEST.sha256")
     try:

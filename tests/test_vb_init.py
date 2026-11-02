@@ -560,19 +560,20 @@ class TestF2VendorLocating(Base):
 
 
 class TestF5ExitCode(Base):
-    """F-5：退出码 / 横幅 / 动作记录三者必须描述同一件事。"""
+    """F-5：退出码 / 横幅 / 动作记录三者必须描述同一件事。
 
-    MUT = "**证据（人工改动）**"
+    契约变更（Owner 批准）：`--update-block` 只升级可证明由工具生成的陈旧块。前置条件因此由“人工改块”
+    改为“工具以 --skip-standard-check 生成、随后正常运行”——块与副本都是工具生成的陈旧内容。
+    人工改块的行为见 TestF5UserModified。
+    """
+
+    STALE = "使用了 --skip-standard-check"
 
     def setUp(self):
         super().setUp()
-        rc, out = self.init("--apply")
+        rc, out = self.init("--apply", "--skip-standard-check")
         self.assertEqual(rc, 0, out)
-        p = os.path.join(self.proj, "AGENTS.md")
-        with open(p, encoding="utf-8") as fh:
-            txt = fh.read()
-        with open(p, "wb") as fh:
-            fh.write(txt.replace("**证据**", self.MUT, 1).encode("utf-8"))
+        self.assertIn(self.STALE, self.agents_text())
         self.assertEqual(self.init("--apply")[0], 2, "前置条件：块应处于 differs 状态")
 
     def agents_text(self):
@@ -584,7 +585,7 @@ class TestF5ExitCode(Base):
         self.assertEqual(rc, 2, out)
         self.assertIn("skipped(需 --update-block)", out)
         self.assertIn("NEED_DECISION", out)
-        self.assertIn("人工改动", self.agents_text(), "未授权时不得改动块内容")
+        self.assertIn(self.STALE, self.agents_text(), "未授权时不得改动块内容")
 
     def test_update_block_success_returns_0_and_banner_matches(self):
         rc, out = self.init("--apply", "--update-block")
@@ -593,7 +594,7 @@ class TestF5ExitCode(Base):
         self.assertIn("OK（标记块已更新）", out)
         self.assertNotIn("NEED_DECISION", out)
         now = self.agents_text()
-        self.assertNotIn("人工改动", now, "授权后应真的更新块")
+        self.assertNotIn(self.STALE, now, "授权后应真的更新块")
         self.assertEqual(now.count("<!-- vibecoding:begin"), 1)
 
     def test_update_block_write_failure_returns_nonzero(self):
@@ -608,11 +609,18 @@ class TestF5ExitCode(Base):
             rc, out = self.init("--apply", "--update-block")
         self.assertEqual(rc, 1, out)
         self.assertNotIn("block_updated", out, "写入失败不得记录为成功")
-        self.assertIn("人工改动", self.agents_text(), "失败时不得冒充已更新")
+        self.assertIn(self.STALE, self.agents_text(), "失败时不得冒充已更新")
 
     def test_dry_run_differs_returns_2(self):
         rc, out = self.init()
         self.assertEqual(rc, 2, out)
+        # 契约变更：被阻断的 dry-run 不得显示 would_*（与 apply 相同，零写入）
+        self.assertIn("blocked(not_written:differs)", out)
+        self.assertNotIn("would_", out)
+
+    def test_dry_run_authorized_shows_would(self):
+        rc, out = self.init("--update-block")
+        self.assertEqual(rc, 0, out)
         self.assertIn("would_differs", out)
 
     def test_json_output_rc_matches_process_rc(self):
@@ -622,6 +630,39 @@ class TestF5ExitCode(Base):
         self.assertEqual(data["rc"], 0)
         self.assertTrue(data["block_updated"])
         self.assertFalse(data["needs_decision"])
+
+
+class TestF5UserModified(Base):
+    """人工改动 AGENTS.md 标记块：无论是否 --update-block，均 USER_MODIFIED、rc2、逐字节零写入。"""
+
+    MUT = "**证据（人工改动）**"
+
+    def setUp(self):
+        super().setUp()
+        rc, out = self.init("--apply")
+        self.assertEqual(rc, 0, out)
+        p = os.path.join(self.proj, "AGENTS.md")
+        with open(p, encoding="utf-8") as fh:
+            txt = fh.read()
+        with open(p, "wb") as fh:
+            fh.write(txt.replace("**证据**", self.MUT, 1).encode("utf-8"))
+
+    def test_update_block_never_overwrites_user_edit(self):
+        before = snapshot(self.proj)
+        for extra in ((), ("--update-block",)):
+            for mode in ((), ("--apply",)):
+                rc, out = self.init(*(mode + extra))
+                self.assertEqual(rc, 2, out)
+                self.assertIn("USER_MODIFIED", out)
+                self.assertIn("NEED_DECISION / CONFLICT", out)
+                self.assertNotIn("block_updated", out)
+                self.assertNotIn("would_", out)
+                self.assertEqual(snapshot(self.proj), before)
+        rc, out = self.init("--apply", "--update-block", "--json")
+        data = json.loads(out)
+        self.assertEqual((rc, data["rc"]), (2, 2))
+        self.assertFalse(data["block_updated"])
+        self.assertTrue(data["needs_decision"])
 
 
 class TestN1WriteJournal(Base):

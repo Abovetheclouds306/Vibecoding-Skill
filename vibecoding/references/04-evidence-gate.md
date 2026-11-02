@@ -71,8 +71,10 @@ python scripts/vb_gate.py --project <项目> --task T-001 \
 `vb_gate.py` 是普通 Python 脚本，可直接进 CI 当作一个 step：
 
 ```yaml
-- run: python <skill>/scripts/vb_gate.py --task "$TASK" --verify "pytest -q" --task-status DONE
+- run: python <skill>/scripts/vb_gate.py --project . --task "$TASK" --verify "pytest -q" --task-status DONE
 ```
+
+`--no-write` 只用于预览：不写证据 `.md`、不做结构检查，结果至多 `UNKNOWN`（退出码 2），**不是通过证据**；`logs/` 仍会写入。
 
 退出码非 0 即使 CI 失败——**这是本技能唯一"不依赖模型自觉"的保障层**。
 

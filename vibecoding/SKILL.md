@@ -19,7 +19,7 @@ metadata:
 ## 这个技能是什么，不是什么
 
 - **是**：一个**流程编排层**。它判断当前处于哪个场景、该读哪份按需资料、该跑哪条确定性命令，并把结论落成可复核的证据文件。
-- **不是**：不是母规范的第二副本。规则正文只有一份，位于 `vendor/vibecoding-standard/`，**与签收版本逐字节相同**（34 文件 blob 全等，可用其自带 `MANIFEST.sha256` 校验）。任何规则改动都必须回到标准仓库发版，本技能只整体替换 vendor 目录。
+- **不是**：不是母规范的第二副本。规则正文只有一份，位于 `vendor/vibecoding-standard/`，**与签收版本逐字节相同**（38 文件 blob 全等，可用其自带 `MANIFEST.sha256` 校验）。任何规则改动都必须回到标准仓库发版，本技能只整体替换 vendor 目录。
 - **不是**：不是"装上就无人值守"。技能只能提高一致性，**不能保证**任何 Agent 一定激活它、一定遵循它；激活失败是已知风险，见 `references/06-platform-capabilities.md`。
 
 ## 铁律（任何场景都先满足）
@@ -50,13 +50,14 @@ metadata:
 python <skill>/scripts/vb_init.py --project <项目> --apply
 
 # 2) 门禁：跑验证命令 → 写证据 → 先用 vb_trust 固定清单核对标准副本，通过后只以 -I -B 运行其 check_evidence.py 的已核对私有副本 → 汇总退出码
-python <skill>/scripts/vb_gate.py --project <项目> --task <TASK-ID> --verify "<命令>"
+python <skill>/scripts/vb_gate.py --project <项目> --task <TASK-ID> --verify "<命令>" --task-status DONE
+# 注：--task-status 默认 REVIEW；--no-write 不写证据 .md、不做结构检查，结果至多 UNKNOWN(2)，不能当作通过证据（logs/ 仍会写入）
 
 # 3) 交接：写/读 HANDOFF.md，恢复时用它列出应复核的证据
 python <skill>/scripts/vb_handoff.py --project <项目> --task <TASK-ID> --show
 ```
 
-`<skill>` 是含本 `SKILL.md` 的目录（Claude Code 可用 `${CLAUDE_SKILL_DIR}`，实现无关写法见 `references/06`）。三条命令都是**幂等**的：重复执行不产生重复文件、不覆盖用户改动。
+`<skill>` 是含本 `SKILL.md` 的目录（Claude Code 可用 `${CLAUDE_SKILL_DIR}`，实现无关写法见 `references/06`）。三条命令都是**幂等**的：重复执行不产生重复文件、不覆盖用户改动。`AGENTS.md` 标记块或 `.vibecoding/AGENTS.block.md` 若被用户修改或无法证明为本工具生成，`vb_init.py` 报 `USER_MODIFIED` / `USER_MODIFIED_OR_UNKNOWN`、退出码 `2`、零写入，`--update-block` 也不会覆盖；`--update-block` 只升级可证明为工具生成的陈旧块。
 
 退出码语义统一：
 
@@ -96,5 +97,5 @@ grep -n "第 8 节\|DoD\|证据" vendor/vibecoding-standard/AI_PROJECT_STANDARD.
 ## 改动边界
 
 - 只写 `.vibecoding/` 与 `AGENTS.md` 的标记块；不写业务代码（业务改动由任务本身负责）。
-- 不修改 `vendor/`（只读副本）；升级 = 整体替换并校验 `MANIFEST.sha256`。
+- 不修改 `vendor/`（只读副本）；升级 = 整体替换并校验 `MANIFEST.sha256`：**先删除旧安装目录再重装**（在旧目录上 `install_skill.py --force` 会因遗留文件 fail-closed，rc=1）。
 - 不修改标准仓库、不推送、不触发 CI（除非用户当次明确授权）。

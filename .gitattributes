@@ -1,5 +1,6 @@
 # R9-F2：换行策略。仓库内所有 blob 均为 LF；检出时不做 CRLF 转换，保证 Windows（core.autocrlf=true）上
 # 全新 clone 的字节与提交一致——vendor 由固定清单 SHA-256 逐字节校验，任何换行转换都会使其失败。
 * text=auto eol=lf
-# vendor：完全按字节保存与检出（不做任何文本转换），必须与 Vibecoding-Standard v1.2.8 签收提交逐字节一致。
+# vendor：必须与 Vibecoding-Standard v1.2.8 签收提交逐字节一致。下一行实际被 vendor 自带的 .gitattributes 覆盖，
+# 由其规则（text=auto eol=lf，blob 均为 LF）保证检出字节一致；本行仅作保留，不再单独生效。
 vibecoding/vendor/** -text

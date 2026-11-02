@@ -203,7 +203,10 @@ class TestPartialStates(Mig):
             rc, out = self.init("--apply", *extra)
             self.assertEqual(rc, 2, out)
             self.assertIn("CONFLICT", out)
-            self.assertIn("用户加的一行", out, "应展示差异")
+            # 契约变更：有限差异只给行号 / 长度 / 哈希，不回显用户内容（可能含敏感信息）
+            self.assertIn("有限差异", out, "应展示差异")
+            self.assertIn("sha256:", out)
+            self.assertNotIn("用户加的一行", out)
             self.assertEqual(snapshot(self.proj), before)
 
     def test_user_modified_agents_block_is_conflict_even_with_update_block(self):
@@ -218,7 +221,9 @@ class TestPartialStates(Mig):
             rc, out = self.init("--apply", *extra)
             self.assertEqual(rc, 2, out)
             self.assertIn("CONFLICT", out)
-            self.assertIn("用户在块内加的一行", out, "应展示差异")
+            self.assertIn("有限差异", out, "应展示差异")
+            self.assertIn("sha256:", out)
+            self.assertNotIn("用户在块内加的一行", out)
             self.assertEqual(snapshot(self.proj), before)
         rc, out = self.init("--update-block", "--json")
         j = __import__("json").loads(out)

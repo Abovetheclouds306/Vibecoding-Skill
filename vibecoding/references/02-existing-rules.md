@@ -54,7 +54,7 @@ Claude Code 由「Project instructions」设置决定读取哪些文件，**默�
 <!-- vibecoding:end -->
 ```
 
-块内含版本号：标准或技能升级后，`vb_init.py` 会报告 `differs`，由用户确认后 `--update-block` 更新——**不会静默改**。
+块内含版本号：标准或技能升级后，若块（及 `.vibecoding/AGENTS.block.md`）可证明为工具生成的陈旧内容，`vb_init.py` 报告 `differs`，由用户确认后 `--update-block` 更新——**不会静默改**。若块被用户修改或来源无法证明，报告 `USER_MODIFIED` / `USER_MODIFIED_OR_UNKNOWN`、退出码 `2`、零写入，`--update-block` 也不会覆盖，需按输出的指引人工处理。
 
 ## 禁止事项
 

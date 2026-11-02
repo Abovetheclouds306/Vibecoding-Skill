@@ -155,12 +155,8 @@ class TestJsonFailureContract(Base):
 class TestUpdateBlockExitCode(Base):
     def setUp(self):
         super().setUp()
-        self.assertEqual(self.init("--apply")[0], 0)
-        p = os.path.join(self.proj, "AGENTS.md")
-        with open(p, encoding="utf-8") as fh:
-            txt = fh.read()
-        with open(p, "w", encoding="utf-8") as fh:
-            fh.write(txt.replace("**证据**", "**证据（人工）**", 1))
+        # 契约变更（Owner 批准）：前置条件改为工具生成的陈旧块（--skip-standard-check 生成后正常运行）
+        self.assertEqual(self.init("--apply", "--skip-standard-check")[0], 0)
 
     def test_differs_json_needs_decision_rc2(self):
         rc, out = self.init("--apply", "--json")
@@ -176,9 +172,28 @@ class TestUpdateBlockExitCode(Base):
         self.assertEqual(data["status"], "ok")
         self.assertTrue(data["block_updated"])
         with open(os.path.join(self.proj, "AGENTS.md"), encoding="utf-8") as fh:
-            self.assertNotIn("证据（人工）", fh.read())
+            self.assertNotIn("使用了 --skip-standard-check", fh.read())
         rc2, out2 = self.init("--apply", "--json")
         self.assertEqual(rc2, 0, "更新后再跑应无待决事项")
+
+
+class TestUpdateBlockUserModified(Base):
+    def test_user_edit_json_rc2_conflict_zero_writes(self):
+        self.assertEqual(self.init("--apply")[0], 0)
+        p = os.path.join(self.proj, "AGENTS.md")
+        with open(p, encoding="utf-8") as fh:
+            txt = fh.read()
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(txt.replace("**证据**", "**证据（人工）**", 1))
+        with open(p, "rb") as fh:
+            before = fh.read()
+        rc, out = self.init("--apply", "--update-block", "--json")
+        self.assertEqual(rc, 2)
+        data = self.assert_json_contract(rc, out)
+        self.assertEqual(data["status"], "needs_decision")
+        self.assertEqual([u["classification"] for u in data["plan"]["user_modified"]], ["USER_MODIFIED"])
+        with open(p, "rb") as fh:
+            self.assertEqual(fh.read(), before)
 
 
 class TestBlockDrift(Base):
