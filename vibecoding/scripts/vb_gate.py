@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """vb_gate.py — 验证证据门禁：跑命令 → 写证据 → vb_trust 固定清单核对标准副本 → 通过后只以 -I -B 运行 check_evidence.py 的已核对私有副本 → 汇总退出码。
 
-语义（与 Vibecoding v1.2.7 一致，严重度 1 > 2 > 0）：
+语义（与 Vibecoding v1.2.8 一致，严重度 1 > 2 > 0）：
   0 = PASS    全部验证已运行且退出码 0，证据结构校验通过
   1 = FAIL    任一验证退出码非 0，或证据中可靠解析出失败
   2 = UNKNOWN 有验证未运行 / 证据结构不足 / 需要人工决定
@@ -103,8 +103,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--verify", action="append", default=[], help="验证命令，可重复；同一命令只跑一次")
     ap.add_argument("--evidence", help="证据文件路径（默认 .vibecoding/evidence/<TASK>.md）；相对路径按当前工作目录解析为绝对路径")
     ap.add_argument("--task-status", default="REVIEW", choices=["DONE", "REVIEW", "IN_PROGRESS", "BLOCKED"], help="任务状态；DONE 才做完整性检查")
-    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；必须通过固定 v1.2.7 签收清单校验（__pycache__ 外的 .pyc 等未登记文件即 FAIL），否则不执行、结构校验记 FAIL；通过后也只执行复制到私有临时目录的已核对字节，以 -I -B 运行，不从该目录导入任何东西）")
-    ap.add_argument("--check-standard", action="store_true", help="把固定 v1.2.7 签收清单校验（vb_trust）另记为一条验收行并参与汇总；无论是否加此参数，执行标准脚本前都会先做该校验")
+    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；必须通过固定 v1.2.8 签收清单校验（__pycache__ 外的 .pyc 等未登记文件即 FAIL），否则不执行、结构校验记 FAIL；通过后也只执行复制到私有临时目录的已核对字节，以 -I -B 运行，不从该目录导入任何东西）")
+    ap.add_argument("--check-standard", action="store_true", help="把固定 v1.2.8 签收清单校验（vb_trust）另记为一条验收行并参与汇总；无论是否加此参数，执行标准脚本前都会先做该校验")
     ap.add_argument("--timeout", type=int, default=900, help="单条命令超时秒数")
     ap.add_argument("--force", action="store_true", help="允许覆盖非本工具生成的证据文件")
     ap.add_argument("--no-write", action="store_true", help="只跑命令、不写证据文件")
@@ -157,7 +157,7 @@ def main(argv: list[str]) -> int:
             os.makedirs(logs_dir, exist_ok=True)
             log_name = "%s-AC%03d.log" % (args.task, ac)
             open(os.path.join(logs_dir, log_name), "wb").write(
-                ("$ vb_trust.verify_pinned (固定 v1.2.7 签收清单; dir=%s)\n\n[exit code] %d\n\n--- output ---\n%s\n" % (standard, rc, out + err)).encode("utf-8"))
+                ("$ vb_trust.verify_pinned (固定 v1.2.8 签收清单; dir=%s)\n\n[exit code] %d\n\n--- output ---\n%s\n" % (standard, rc, out + err)).encode("utf-8"))
             rows.append({"id": "AC-%03d" % ac, "cmd": "vb_trust 固定清单校验", "rc": rc,
                          "conclusion": "PASS" if rc == 0 else ("FAIL" if rc == 1 else "NOT_RUN"),
                          "log": "logs/" + log_name, "limit": (tail[0] if tail else "")[:80]})
@@ -237,11 +237,11 @@ def main(argv: list[str]) -> int:
         print("--- 证据已写入 ---")
         print("  %s" % evidence_path)
 
-    # 用标准自带的证据门禁做结构校验（复用 v1.2.7 工具，不重写规则）
+    # 用标准自带的证据门禁做结构校验（复用 v1.2.8 工具，不重写规则）
     struct_rc = 2
     trust_rc = None
     if standard and not args.no_write:
-        # R9-F1 / R4-N7：执行标准目录中的任何脚本之前，先用技能自带、固定 v1.2.7 清单 SHA-256 的校验器核对；
+        # R9-F1 / R4-N7：执行标准目录中的任何脚本之前，先用技能自带、固定 v1.2.8 清单 SHA-256 的校验器核对；
         # 不通过则绝不执行，结构校验记 FAIL。--standard / VB_STANDARD_HOME 只改变读取位置，不改变信任判据。
         trust_rc, trust_lines = vb_trust.verify_pinned(standard)
     if standard and not args.no_write and trust_rc != 0:

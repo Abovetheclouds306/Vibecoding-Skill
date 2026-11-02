@@ -359,15 +359,42 @@ class TestR10GitAttributes(unittest.TestCase):
         self.assertIn("vibecoding/vendor/** -text", lines)
 
     def test_check_attr(self):
-        if not os.path.isdir(os.path.join(REPO, ".git")) or shutil.which("git") is None:
+        # S-SKILL-01（Owner 批准方案 a）：v1.2.8 vendor 自带 .gitattributes（固定清单条目，
+        # 不可删改），其 `* text=auto eol=lf` 依 git 就近优先规则覆盖根目录 `vibecoding/vendor/** -text`。
+        # 因此不再断言 vendor `text: unset`，改为断言字节一致性的实际保障：eol=lf、无 CR 字节、*.zip binary。
+        # 用 rev-parse 判定 git 检出，使 worktree（.git 为文件）也实际运行而非跳过。
+        if shutil.which("git") is None:
+            self.skipTest("无 git")
+        chk = subprocess.run(["git", "-C", REPO, "rev-parse", "--is-inside-work-tree"],
+                             capture_output=True, text=True)
+        if chk.returncode != 0 or chk.stdout.strip() != "true":
             self.skipTest("非 git 检出")
-        r = subprocess.run(["git", "-C", REPO, "check-attr", "text", "eol", "--",
-                            "vibecoding/vendor/vibecoding-standard/MANIFEST.sha256", "tools/install_skill.py"],
-                           capture_output=True, text=True)
-        out = r.stdout
-        self.assertIn("vibecoding/vendor/vibecoding-standard/MANIFEST.sha256: text: unset", out)
-        self.assertIn("tools/install_skill.py: text: auto", out)
-        self.assertIn("tools/install_skill.py: eol: lf", out)
+        vend_rel = []
+        for root, _dirs, files in os.walk(VENDOR):
+            for f in files:
+                full = os.path.join(root, f)
+                with open(full, "rb") as fh:
+                    self.assertNotIn(b"\r", fh.read(), "vendor 文件含 CR 字节: %s" % full)
+                vend_rel.append(os.path.relpath(full, REPO).replace(os.sep, "/"))
+        self.assertGreaterEqual(len(vend_rel), 38)
+        zip_probe = "vibecoding/vendor/vibecoding-standard/probe.zip"
+        # -z：NUL 分隔、路径不转义（避免 core.quotePath 对中文路径加引号转义）。
+        r = subprocess.run(["git", "-C", REPO, "check-attr", "-z", "text", "eol", "diff", "binary", "--"]
+                           + vend_rel + [zip_probe, "tools/install_skill.py"],
+                           capture_output=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        parts = r.stdout.decode("utf-8").split("\0")
+        attrs = {}
+        for i in range(0, len(parts) - 2, 3):
+            attrs[(parts[i], parts[i + 1])] = parts[i + 2]
+        for rel in vend_rel:
+            self.assertEqual(attrs.get((rel, "eol")), "lf", rel)
+        self.assertEqual(attrs.get(("vibecoding/vendor/vibecoding-standard/MANIFEST.sha256", "eol")), "lf")
+        self.assertEqual(attrs.get((zip_probe, "binary")), "set")
+        self.assertEqual(attrs.get((zip_probe, "text")), "unset")
+        self.assertEqual(attrs.get((zip_probe, "diff")), "unset")
+        self.assertEqual(attrs.get(("tools/install_skill.py", "text")), "auto")
+        self.assertEqual(attrs.get(("tools/install_skill.py", "eol")), "lf")
 
 
 class TestR11N4RelativeEvidence(GateTrustBase):

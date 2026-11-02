@@ -42,8 +42,8 @@ Claude Code 由「Project instructions」设置决定读取哪些文件，**默�
 ## 追加块长什么样
 
 ```markdown
-<!-- vibecoding:begin v0.1.0 standard=1.2.7 -->
-## 工程纪律（Vibecoding v1.2.7）
+<!-- vibecoding:begin v0.1.0 standard=1.2.8 -->
+## 工程纪律（Vibecoding v1.2.8）
 
 - 唯一规则真值源：规范正文，位置见 `.vibecoding/config.json` 的 `standard_vendor_path`；本文件只做入口。
 - 该路径不可读＝技能已卸载或项目已移动：不得假装规范已加载，重装后重跑 `vb_init --apply` 重定位。

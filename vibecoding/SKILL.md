@@ -1,20 +1,20 @@
 ---
 name: vibecoding
-description: Apply the Vibecoding Standard v1.2.7 engineering discipline inside a software project. Use when starting or resuming development work in a repository, when a task needs verification evidence with exit codes, when initializing AGENTS.md or CLAUDE.md without overwriting existing rules, when handing off or recovering a session from repository evidence, or when the user mentions Vibecoding, 证据门禁, 会话交接, 最低工程动作集, or asks to follow the team engineering standard. Covers project identification, guarded init, task flow, evidence gates (0=PASS / 1=FAIL / 2=UNKNOWN, never report NOT_RUN as PASS) and handoff.
+description: Apply the Vibecoding Standard v1.2.8 engineering discipline inside a software project. Use when starting or resuming development work in a repository, when a task needs verification evidence with exit codes, when initializing AGENTS.md or CLAUDE.md without overwriting existing rules, when handing off or recovering a session from repository evidence, or when the user mentions Vibecoding, 证据门禁, 会话交接, 最低工程动作集, or asks to follow the team engineering standard. Covers project identification, guarded init, task flow, evidence gates (0=PASS / 1=FAIL / 2=UNKNOWN, never report NOT_RUN as PASS) and handoff.
 license: Proprietary. See vendor/vibecoding-standard/README.md for the standard's own terms.
 compatibility: Requires git and Python 3.10+. Offline gates only; no network access required.
 metadata:
   version: "0.1.0"
-  standard_version: "1.2.7"
-  standard_signoff_commit: "ce5b361cf13ae373094abe67eb9ce7a6e22ecb8f"
-  standard_release_commit: "fd9750f3e6c4c2105cf253d5f7d6494f0f373fdf"
-  standard_tag: "v1.2.7"
-  standard_vendored_sha256: "0ce2a06cf506904cca4e0597240d43f5e869ee9845d7b508bc83a9fd2745dd38"
+  standard_version: "1.2.8"
+  standard_signoff_commit: "2e010b04059172b651c191bf1dbaab279c8d78be"
+  standard_release_commit: "PENDING"
+  standard_tag: "PENDING"
+  standard_vendored_sha256: "PENDING"
 ---
 
 # Vibecoding Skill（v0.1.0 POC）
 
-把 Vibecoding Standard v1.2.7 的工程纪律包装成可安装技能：**项目识别 → 受保护初始化 → 标准任务流程 → 证据与退出码门禁 → 交接与恢复**。
+把 Vibecoding Standard v1.2.8 的工程纪律包装成可安装技能：**项目识别 → 受保护初始化 → 标准任务流程 → 证据与退出码门禁 → 交接与恢复**。
 
 ## 这个技能是什么，不是什么
 

@@ -148,7 +148,7 @@ class Base(unittest.TestCase):
             shutil.rmtree(self.src)
         for rel, text in files.items():
             self.write(os.path.join(self.src, *rel.split("/")), text)
-        # R4-N7：安装器用固定哈希校验 vendor，桩脚本不再可用；复制真实 v1.2.7 副本。
+        # R4-N7：安装器用固定哈希校验 vendor，桩脚本不再可用；复制真实 v1.2.8 副本。
         vend = os.path.join(self.src, "vendor", "vibecoding-standard")
         shutil.copytree(os.path.join(REAL_SKILL, "vendor", "vibecoding-standard"), vend,
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))

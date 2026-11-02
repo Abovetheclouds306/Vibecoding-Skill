@@ -29,7 +29,7 @@ python scripts/vb_init.py --project <项目> --apply    # 落盘
 
 1. 定位标准正文（顺序：`--standard` 参数 → 环境变量 `VB_STANDARD_HOME` → 技能内置 `vendor/vibecoding-standard/` → 项目内 `.vibecoding/vendor/vibecoding-standard/`）。
 2. **校验规范接入**（见下节）：vendor 必须实际存在、正文可读、`MANIFEST.sha256` 与 `tools/verify_manifest.py` 齐备。任一缺失即报**接入缺失**并拒绝初始化，**不写指向空路径的注入块**。
-3. **校验标准副本（可信校验）**：用技能自带的 `scripts/vb_trust.py`（内置固定的 v1.2.7 `MANIFEST.sha256` SHA-256）逐文件核对哈希、缺失与未登记文件；**不运行**被校验目录里的任何脚本（包括它自带的 `verify_manifest.py`，那只能证明“自洽”，不能证明是签收版本）。不通过则拒绝初始化（退出码 `1`），不写入任何文件。`--standard` / `VB_STANDARD_HOME` 只改变读取位置，不改变信任判据。`--skip-standard-check` 跳过校验时结果标为 SKIPPED（未验证），不得视为签收版本。
+3. **校验标准副本（可信校验）**：用技能自带的 `scripts/vb_trust.py`（内置固定的 v1.2.8 `MANIFEST.sha256` SHA-256）逐文件核对哈希、缺失与未登记文件；**不运行**被校验目录里的任何脚本（包括它自带的 `verify_manifest.py`，那只能证明“自洽”，不能证明是签收版本）。不通过则拒绝初始化（退出码 `1`），不写入任何文件。`--standard` / `VB_STANDARD_HOME` 只改变读取位置，不改变信任判据。`--skip-standard-check` 跳过校验时结果标为 SKIPPED（未验证），不得视为签收版本。
 4. 生成 `.vibecoding/`：`config.json`、`AGENTS.block.md`、`evidence/_template.md`、`HANDOFF.md`（仅在不存在时创建）。
 5. 处理 `AGENTS.md`：
 

@@ -4,7 +4,7 @@
 
 ## 1. 信任根
 
-- 唯一信任根是技能自带的 `vibecoding/scripts/vb_trust.py` 中固定的 `PINNED_MANIFEST_SHA256`（Vibecoding Standard v1.2.7 的 `MANIFEST.sha256` 的 SHA-256）。
+- 唯一信任根是技能自带的 `vibecoding/scripts/vb_trust.py` 中固定的 `PINNED_MANIFEST_SHA256`（Vibecoding Standard v1.2.8 的 `MANIFEST.sha256` 的 SHA-256）。
 - `vb_trust.py` 先核对清单文件本身等于该哈希，再逐文件核对哈希、缺失与未登记文件；**不执行、不导入**被校验目录里的任何代码。
 - 验证命令：`python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard`（PASS = 退出码 0）。
 - 标准副本自带的 `tools/verify_manifest.py` 只是 Standard 的自洽性自检，**不是信任根**：篡改者可以同步改写清单使其通过。

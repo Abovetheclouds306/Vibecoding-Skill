@@ -21,7 +21,8 @@
 
 退出码：0 = 成功/无需变更（含 `--update-block` 已按授权更新块）；
         1 = 拒绝或出错（含已完成回滚、或部分回滚仍有残留的失败）；
-        2 = 仍需人工决定（标记块 differs 且未获 `--update-block` 授权）。
+        2 = 仍需人工决定，且**本次零写入**：标记块/副本陈旧（含 MIXED_STATE）而未获 `--update-block`
+            授权；或存在来源不明确的冲突（config 无法解析/身份不可识别、副本被用户修改）。
 
 「接入缺失」语义（F-2）：本脚本只使用**已安装技能自带的 vendor 副本**作为规范真值源，
 从不把整份规范复制进项目。因此它同时要求：vendor 实际存在、可读、且与签收版本校验一致；
@@ -35,6 +36,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -44,10 +46,25 @@ import vb_trust  # noqa: E402  R4-N7：固定哈希的可信校验器（技能�
 from datetime import datetime
 
 SKILL_VERSION = "0.1.0"
-STANDARD_VERSION = "1.2.7"
-STANDARD_SIGNOFF = "ce5b361cf13ae373094abe67eb9ce7a6e22ecb8f"
-STANDARD_RELEASE = "fd9750f3e6c4c2105cf253d5f7d6494f0f373fdf"
-STANDARD_ZIP_SHA = "0ce2a06cf506904cca4e0597240d43f5e869ee9845d7b508bc83a9fd2745dd38"
+STANDARD_VERSION = vb_trust.STANDARD_VERSION            # "1.2.8"
+STANDARD_SIGNOFF = vb_trust.STANDARD_SIGNOFF            # Owner 签收的工程候选 2e010b0
+# 发布身份未定（S-SKILL-01 D-7）：不得用工程候选 SHA 冒充发布提交 / 发布 ZIP。
+STANDARD_RELEASE = "PENDING"
+STANDARD_ZIP_SHA = "PENDING"
+
+# 旧版识别表（D-6）：只读，仅用于识别升级来源并输出 LEGACY_DETECTED；
+# 运行时信任只来自 vb_trust 的固定值，本表中的任何值都**不被信任**。
+LEGACY_IDENTITIES = {
+    "1.2.7": {
+        "standard_signoff_commit": "ce5b361cf13ae373094abe67eb9ce7a6e22ecb8f",
+        "standard_release_commit": "fd9750f3e6c4c2105cf253d5f7d6494f0f373fdf",
+        "standard_vendor_zip_sha256": "0ce2a06cf506904cca4e0597240d43f5e869ee9845d7b508bc83a9fd2745dd38",
+    },
+}
+# config.json 中参与幂等比较的稳定字段（initialized_at 保留原值）
+STABLE_FIELDS = ("skill_version", "standard_version", "standard_signoff_commit",
+                 "standard_release_commit", "standard_vendor_zip_sha256", "standard_vendor_path",
+                 "standard_trust")
 
 BEGIN = "<!-- vibecoding:begin"
 END = "<!-- vibecoding:end -->"
@@ -687,6 +704,195 @@ def write_if_changed(path: str, content: bytes, journal: WriteJournal | None = N
     return "created"
 
 
+HEADER_RE = re.compile(r"<!-- vibecoding:begin skill=(\S+) standard=(\S+) -->")
+RESOLVED_RE = re.compile(r"\*\*本次初始化解算\*\*：`([^`]*)`（(.*)）。[ \t]*$", re.M)
+
+
+def _block_std(text: str | None) -> str | None:
+    m = HEADER_RE.search(text or "")
+    return m.group(2) if m else None
+
+
+def _rerender_matches(text: str) -> bool:
+    """副本是否等于某一版本工具的确定性渲染结果（D-4 基线：不新增 config 字段）。"""
+    m = HEADER_RE.search(text)
+    r = RESOLVED_RE.search(text)
+    if not m or not r:
+        return False
+    sv, std = m.group(1), m.group(2)
+    for claim in (STD_CLAIM_TRUSTED, STD_CLAIM_SKIPPED):
+        cand = BLOCK.format(sv=sv, std=std, std_claim=claim.format(std=std),
+                            vendor_path=r.group(1), vendor_condition=r.group(2))
+        if normalize(cand) == normalize(text):
+            return True
+    return False
+
+
+def config_identity(cfg: dict) -> str | None:
+    """返回 "current" / "legacy" / None（不可识别 → 不推断、不覆盖）。"""
+    v = cfg.get("standard_version")
+    cur = {"standard_signoff_commit": STANDARD_SIGNOFF, "standard_release_commit": STANDARD_RELEASE,
+           "standard_vendor_zip_sha256": STANDARD_ZIP_SHA}
+    if v == STANDARD_VERSION and all(cfg.get(k) == cur[k] for k in cur):
+        return "current"
+    leg = LEGACY_IDENTITIES.get(v) if isinstance(v, str) else None
+    if leg and all(cfg.get(k) == leg[k] for k in leg):
+        return "legacy"
+    return None
+
+
+def _agents_block_text(project: str) -> str | None:
+    path = os.path.join(project, "AGENTS.md")
+    if not os.path.isfile(path):
+        return None
+    text = _read_raw(path).decode("utf-8", "replace")
+    span = split_block(text)
+    return text[span[0]:span[1]] if span else None
+
+
+def read_markers(project: str) -> dict:
+    out: dict = {"config": None, "AGENTS.md": _block_std(_agents_block_text(project)),
+                 ".vibecoding/AGENTS.block.md": None}
+    cp = os.path.join(project, ".vibecoding", "AGENTS.block.md")
+    if os.path.isfile(cp):
+        out[".vibecoding/AGENTS.block.md"] = _block_std(_read_raw(cp).decode("utf-8", "replace"))
+    cfg = os.path.join(project, ".vibecoding", "config.json")
+    if os.path.isfile(cfg):
+        try:
+            data = json.loads(_read_raw(cfg).decode("utf-8"))
+            out["config"] = data.get("standard_version") if isinstance(data, dict) else None
+        except (ValueError, OSError):
+            out["config"] = None
+    return out
+
+
+def verify_consistent(project: str, desired_block: str) -> list[str]:
+    """写后复核：config、副本、AGENTS.md 标记块三处都必须是本版本、且块内容与期望一致。"""
+    bad = []
+    m = read_markers(project)
+    if m["config"] != STANDARD_VERSION:
+        bad.append("config.json standard_version=%r" % m["config"])
+    cp = os.path.join(project, ".vibecoding", "AGENTS.block.md")
+    if not os.path.isfile(cp) or normalize(_read_raw(cp).decode("utf-8", "replace")) != normalize(desired_block):
+        bad.append(".vibecoding/AGENTS.block.md 与期望块不一致")
+    blk = _agents_block_text(project)
+    if blk is None or normalize(blk) != normalize(desired_block):
+        bad.append("AGENTS.md 标记块与期望块不一致")
+    return bad
+
+
+def EVIDENCE_TEMPLATE_BYTES() -> bytes:
+    return EVIDENCE_TEMPLATE.format(sv=SKILL_VERSION, task="<TASK-ID>", ts="<日期 时间 时区>",
+                                    baseline="<commit>", env="<系统 / 运行时>").encode("utf-8")
+
+
+def build_plan(project: str, agents_plan: dict, desired_block: str, manifest: dict) -> dict:
+    """S-SKILL-01：只读地构建完整计划；不写任何文件。"""
+    vb = os.path.join(project, ".vibecoding")
+    out: dict = {"conflicts": [], "auth": [], "legacy": None, "config_bytes": None, "copy_diff": []}
+
+    # 1) config.json
+    cfg_path = os.path.join(vb, "config.json")
+    new_cfg = dict(manifest)
+    prev_std = None
+    if not os.path.lexists(cfg_path):
+        out["config"] = "created"
+    elif not os.path.isfile(cfg_path):
+        out["config"] = "conflict"
+        out["conflicts"].append(".vibecoding/config.json 不是普通文件")
+    else:
+        try:
+            prev = json.loads(_read_raw(cfg_path).decode("utf-8"))
+            if not isinstance(prev, dict):
+                raise ValueError("不是 JSON 对象")
+        except (ValueError, OSError) as exc:
+            out["config"] = "conflict"
+            out["conflicts"].append(".vibecoding/config.json 无法解析（%s）：来源不明确，不推断、不覆盖" % type(exc).__name__)
+        else:
+            prev_std = prev.get("standard_version")
+            if all(prev.get(k) == manifest.get(k) for k in STABLE_FIELDS):
+                out["config"] = "unchanged"
+            else:
+                ident = config_identity(prev)
+                if ident is None:
+                    out["config"] = "conflict"
+                    out["conflicts"].append(".vibecoding/config.json 记录的标准身份不可识别（standard_version=%r）："
+                                            "来源不明确，不推断、不覆盖" % (prev_std,))
+                else:
+                    out["config"] = "updated"
+                    if ident == "legacy":
+                        out["legacy"] = prev_std
+                    new_cfg["initialized_at"] = prev.get("initialized_at") or manifest["initialized_at"]
+    out["config_bytes"] = (json.dumps(new_cfg, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+    # 2) AGENTS.md
+    agents_text = _agents_block_text(project) if agents_plan["status"] in ("unchanged", "differs") else None
+    if agents_plan["status"] == "differs":
+        # S-SKILL-01 §4（用户修改保护）：AGENTS.md 标记块若既不等于受管副本、也不等于任何工具渲染结果，
+        # 视为用户修改 → 冲突（即使带 --update-block 也不覆盖），并给出差异。
+        cp0 = os.path.join(vb, "AGENTS.block.md")
+        copy_text = _read_raw(cp0).decode("utf-8", "replace") if os.path.isfile(cp0) else None
+        tool_rendered = (copy_text is not None and normalize(copy_text) == normalize(agents_text)) \
+            or _rerender_matches(agents_text)
+        # 仅在旧版升级路径生效（块标记旧版本或 config 为旧身份）：此时 --update-block 的含义是“升级旧块”，
+        # 不得借此覆盖用户改动。当前版本块的人工改动仍沿用 F-5 既有契约（无授权 rc2；--update-block 显式覆盖）。
+        upgrade_path = out["legacy"] is not None or _block_std(agents_text) not in (None, STANDARD_VERSION)
+        if tool_rendered or not upgrade_path:
+            out["auth"].append("AGENTS.md 标记块与期望不同")
+        else:
+            import difflib
+            out["agents_conflict"] = True
+            out["conflicts"].append("AGENTS.md 标记块被修改（与受管副本及任何工具渲染结果都不相等）：默认拒绝，不覆盖")
+            out["agents_diff"] = list(difflib.unified_diff(
+                normalize(desired_block).split("\n"), normalize(agents_text).split("\n"),
+                "期望", "现有标记块", lineterm="", n=0))[:40]
+
+    # 3) .vibecoding/AGENTS.block.md 副本
+    cp = os.path.join(vb, "AGENTS.block.md")
+    if not os.path.lexists(cp):
+        out["copy"] = "created"
+    elif not os.path.isfile(cp):
+        out["copy"] = "conflict"
+        out["conflicts"].append(".vibecoding/AGENTS.block.md 不是普通文件")
+    else:
+        text = _read_raw(cp).decode("utf-8", "replace")
+        if normalize(text) == normalize(desired_block):
+            out["copy"] = "unchanged"
+        elif (agents_text is not None and normalize(text) == normalize(agents_text)) or _rerender_matches(text):
+            out["copy"] = "stale"
+            out["auth"].append(".vibecoding/AGENTS.block.md 副本陈旧（standard=%s）" % _block_std(text))
+        else:
+            import difflib
+            out["copy"] = "conflict"
+            out["conflicts"].append(".vibecoding/AGENTS.block.md 被修改（与任何工具渲染结果都不相等）：默认拒绝，不覆盖")
+            out["copy_diff"] = list(difflib.unified_diff(
+                normalize(desired_block).split("\n"), normalize(text).split("\n"),
+                "期望", "现有副本", lineterm="", n=0))[:40]
+
+    # 4) evidence/_template.md（存在且不同 → 保留，不写）
+    ev = os.path.join(vb, "evidence", "_template.md")
+    if not os.path.lexists(ev):
+        out["evidence"] = "created"
+    elif os.path.isfile(ev) and _read_raw(ev) == EVIDENCE_TEMPLATE_BYTES():
+        out["evidence"] = "unchanged"
+    else:
+        out["evidence"] = "differs"
+
+    # 5) HANDOFF.md（仅不存在时创建）
+    out["handoff"] = "exists(unchanged)" if os.path.lexists(os.path.join(vb, "HANDOFF.md")) else "created"
+
+    # 6) MIXED_STATE（D-2）：已存在的三处 standard= 标记不一致
+    markers = {"config": prev_std, "AGENTS.md": _block_std(agents_text),
+               ".vibecoding/AGENTS.block.md": _block_std(_read_raw(cp).decode("utf-8", "replace"))
+               if os.path.isfile(cp) else None}
+    out["markers"] = markers
+    present = {v for v in markers.values() if v is not None}
+    out["mixed"] = len(present) > 1
+    if out["mixed"] and not out["auth"] and not out["conflicts"]:
+        out["auth"].append("MIXED_STATE")
+    return out
+
+
 def print_residuals(residuals: list[dict]) -> bool:
     """打印残留风险；返回是否存在残留（存在时上层禁止宣称"已全部回滚"）。"""
     if not residuals:
@@ -704,7 +910,7 @@ def _main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description="Vibecoding Skill 受保护初始化（默认 dry-run）",
                                  allow_abbrev=False)   # R4-N6：禁止前缀缩写（--jso/--app 等）
     ap.add_argument("--project", default=".", help="目标项目目录（默认当前目录）")
-    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；仍须通过技能自带 vb_trust 的固定 v1.2.7 签收清单校验，否则拒绝）")
+    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；仍须通过技能自带 vb_trust 的固定 v1.2.8 清单校验，否则拒绝）")
     ap.add_argument("--apply", action="store_true", help="实际落盘；缺省为 dry-run")
     ap.add_argument("--allow-dirty", action="store_true", help="工作区脏时仍允许改 tracked 文件")
     ap.add_argument("--update-block", action="store_true", help="标记块内容不同时允许覆盖")
@@ -749,6 +955,10 @@ def _main(argv: list[str]) -> int:
             print("  信任边界：只接受与固定的 v%s 签收清单（SHA-256 %s…）逐文件一致的副本；"
                   "--standard / VB_STANDARD_HOME 只改变读取位置，不改变信任判据。"
                   % (STANDARD_VERSION, vb_trust.PINNED_MANIFEST_SHA256[:16]))
+            legacy = vb_trust.legacy_version(standard)
+            if legacy:
+                print("  LEGACY_DETECTED: 该副本是旧版 v%s 的清单（只读识别，不被信任）；请安装携带 v%s 的技能。"
+                      % (legacy, STANDARD_VERSION))
             return 1
         result["standard"]["trust"] = vb_trust.TRUST_PINNED
     else:
@@ -764,109 +974,124 @@ def _main(argv: list[str]) -> int:
                                  vendor_path=vref["path"], vendor_condition=vref["condition"])
     plan = plan_agents(project, desired_block)
 
-    touch_tracked = plan["status"] in ("appended", "differs") or (plan["status"] == "created" and state["is_repo"])
-    if args.apply and state["dirty"] and touch_tracked and not args.allow_dirty:
+    # 规范位置：项目内用相对路径（随项目移动有效），项目外用绝对路径（并已标注失效条件）。
+    # 不再使用 os.path.relpath 生成"越出项目"的 ../../ 相对路径（R2 的 F-2 事实之一）。
+    manifest = {
+        "skill_version": SKILL_VERSION,
+        "standard_version": STANDARD_VERSION,
+        "standard_signoff_commit": STANDARD_SIGNOFF,
+        "standard_release_commit": STANDARD_RELEASE,
+        "standard_vendor_zip_sha256": STANDARD_ZIP_SHA,
+        "standard_vendor_path": vref["path"],
+        "standard_trust": result["standard"]["trust"],
+        "initialized_at": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z"),
+    }
+
+    # S-SKILL-01（R15 A/B/C；D-1/D-2/D-3）：任何写入之前先构建**完整**计划。
+    # 需授权（陈旧块/副本）而未给 --update-block、或存在来源不明确的冲突 → rc=2，零写入；
+    # dry-run 与 apply 使用同一份计划与同一写入集合。
+    full = build_plan(project, plan, desired_block, manifest)
+    blocked = bool(full["conflicts"]) or (bool(full["auth"]) and not args.update_block)
+    agents_write = (not blocked) and (plan["status"] in ("created", "appended")
+                                      or (plan["status"] == "differs" and args.update_block))
+    writes = {
+        "AGENTS.md": agents_write,
+        ".vibecoding/config.json": (not blocked) and full["config"] in ("created", "updated"),
+        ".vibecoding/AGENTS.block.md": (not blocked) and full["copy"] in ("created", "stale"),
+        ".vibecoding/evidence/_template.md": (not blocked) and full["evidence"] == "created",
+        ".vibecoding/HANDOFF.md": (not blocked) and full["handoff"] == "created",
+    }
+    result["plan"] = {
+        "markers": full["markers"],
+        "mixed_state": full["mixed"],
+        "legacy_detected": full["legacy"],
+        "needs_authorization": full["auth"],
+        "conflicts": full["conflicts"],
+        "write_set": sorted(k for k, v in writes.items() if v),
+        "copy_diff": full["copy_diff"],
+        "agents_diff": full.get("agents_diff", []),
+    }
+
+    touch_tracked = agents_write and (plan["status"] in ("appended", "differs")
+                                      or (plan["status"] == "created" and state["is_repo"]))
+    if args.apply and not blocked and state["dirty"] and touch_tracked and not args.allow_dirty:
         print("REFUSED: 工作区有未提交改动，且本次会修改 AGENTS.md。确认无冲突后加 --allow-dirty。")
         print(state["porcelain"] or "(status 为空但 dirty 判定为真)")
         return 1
 
-    # 预检前的真实位置基线：写入时若与它不一致 ⇒ 目标在预检后被替换（R2-N2）
-    baseline: dict[str, str] = {}
-    for _rel in ("", ".vibecoding", ".vibecoding/evidence", "AGENTS.md"):
-        _p = os.path.join(project, _rel) if _rel else project
-        if os.path.exists(_p):
-            baseline[os.path.abspath(_p)] = os.path.realpath(_p)
+    labels = {
+        ".vibecoding/config.json": full["config"],
+        ".vibecoding/AGENTS.block.md": "updated" if full["copy"] == "stale" else full["copy"],
+        ".vibecoding/evidence/_template.md": full["evidence"],
+        ".vibecoding/HANDOFF.md": full["handoff"],
+    }
 
-    journal = WriteJournal(root=project, baseline=baseline)
-    state_cfg = "would_write"
-    state_block = "would_write"
-    state_ev = "would_write"
-    state_ho = "exists(unchanged)" if os.path.exists(os.path.join(project, ".vibecoding", "HANDOFF.md")) else "would_create"
+    def _step(name: str, status: str) -> dict:
+        return {"file": name, "status": status, "write": writes[name]}
 
     if not args.apply:
         plan["action"] = "would_" + plan["status"]
+        plan["write"] = writes["AGENTS.md"]
         result["steps"].append(plan)
-        result["steps"].append({"file": ".vibecoding/config.json", "status": state_cfg})
-        result["steps"].append({"file": ".vibecoding/AGENTS.block.md", "status": state_block})
-        result["steps"].append({"file": ".vibecoding/evidence/_template.md", "status": state_ev})
-        result["steps"].append({"file": ".vibecoding/HANDOFF.md", "status": state_ho})
+        for name, lab in labels.items():
+            if name == ".vibecoding/HANDOFF.md" and lab == "exists(unchanged)":
+                result["steps"].append(_step(name, lab))
+            else:
+                result["steps"].append(_step(name, "would_" + lab))
+    elif blocked:
+        # 零写入：不建目录、不开 journal（D-1）
+        why = "冲突" if full["conflicts"] else "需 --update-block"
+        plan["action"] = ("skipped(需 --update-block)" if plan["status"] == "differs" and not full["conflicts"]
+                          else ("skipped(%s)" % why if plan["status"] != "unchanged" else "no_change"))
+        plan["write"] = False
+        result["steps"].append(plan)
+        for name, lab in labels.items():
+            status = lab if lab in ("unchanged", "exists(unchanged)") else "not_written(%s)" % why
+            result["steps"].append(_step(name, status))
     else:
+        # 预检前的真实位置基线：写入时若与它不一致 → 目标在预检后被替换（R2-N2）
+        baseline: dict[str, str] = {}
+        for _rel in ("", ".vibecoding", ".vibecoding/evidence", "AGENTS.md"):
+            _p = os.path.join(project, _rel) if _rel else project
+            if os.path.exists(_p):
+                baseline[os.path.abspath(_p)] = os.path.realpath(_p)
+        journal = WriteJournal(root=project, baseline=baseline)
         problems = preflight(project, plan)
         if problems:
             print("REFUSED: 写入前检查未通过（未写入任何文件）。")
             for p in problems:
                 print("  - " + p)
             return 1
-
-        # 规范位置：项目内用相对路径（随项目移动有效），项目外用绝对路径（并已标注失效条件）。
-        # 不再使用 os.path.relpath 生成"越出项目"的 ../../ 相对路径（R2 的 F-2 事实之一）。
-        vendor_rel = vref["path"]
-
-        manifest = {
-            "skill_version": SKILL_VERSION,
-            "standard_version": STANDARD_VERSION,
-            "standard_signoff_commit": STANDARD_SIGNOFF,
-            "standard_release_commit": STANDARD_RELEASE,
-            "standard_vendor_zip_sha256": STANDARD_ZIP_SHA,
-            "standard_vendor_path": vendor_rel,
-            "standard_trust": result["standard"]["trust"],
-            "initialized_at": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z"),
-        }
+        done = dict(labels)
         cfg_path = os.path.join(project, ".vibecoding", "config.json")
         try:
-            # 1) 先建目录：这是 F-1 的根因修复点（原先直接写 config.json 导致 FileNotFoundError）
-            journal.step = "创建 .vibecoding/ 目录"
-            journal.mkdir(os.path.join(project, ".vibecoding"))
-            journal.mkdir(os.path.join(project, ".vibecoding", "evidence"))
-
-            # 2) config.json（幂等：只比稳定字段，initialized_at 保留原值）
-            journal.step = ".vibecoding/config.json"
-            stable = ("skill_version", "standard_version", "standard_signoff_commit",
-                      "standard_release_commit", "standard_vendor_zip_sha256", "standard_vendor_path",
-                      "standard_trust")
-            prev = None
-            if os.path.exists(cfg_path):
-                try:
-                    prev = json.loads(_read_raw(cfg_path).decode("utf-8"))
-                except (json.JSONDecodeError, OSError):
-                    prev = None
-            cfg_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
-            if prev is not None and all(prev.get(k) == manifest.get(k) for k in stable):
-                state_cfg = "unchanged"
-            elif prev is not None:
-                manifest["initialized_at"] = prev.get("initialized_at") or manifest["initialized_at"]
-                cfg_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
-                journal.write(cfg_path, cfg_bytes, step=".vibecoding/config.json 更新")
-                state_cfg = "updated"
-            else:
-                journal.write(cfg_path, cfg_bytes, step=".vibecoding/config.json 创建")
-                state_cfg = "created"
-
-            # 3) AGENTS.block.md 副本（存在且不同则不动，保持原语义）
-            journal.step = ".vibecoding/AGENTS.block.md"
-            state_block = write_if_changed(os.path.join(project, ".vibecoding", "AGENTS.block.md"),
-                                           desired_block.encode("utf-8"), journal)
-
-            # 4) evidence/_template.md
-            journal.step = ".vibecoding/evidence/_template.md"
-            state_ev = write_if_changed(
-                os.path.join(project, ".vibecoding", "evidence", "_template.md"),
-                EVIDENCE_TEMPLATE.format(sv=SKILL_VERSION, task="<TASK-ID>", ts="<日期 时间 时区>",
-                                         baseline="<commit>", env="<系统 / 运行时>").encode("utf-8"),
-                journal)
-
-            # 5) HANDOFF.md（仅在不存在时创建）
-            journal.step = ".vibecoding/HANDOFF.md"
-            handoff = os.path.join(project, ".vibecoding", "HANDOFF.md")
-            if not os.path.exists(handoff):
+            if any(writes.values()):
+                journal.step = "创建 .vibecoding/ 目录"
+                journal.mkdir(os.path.join(project, ".vibecoding"))
+                journal.mkdir(os.path.join(project, ".vibecoding", "evidence"))
+            if writes[".vibecoding/config.json"]:
+                journal.step = ".vibecoding/config.json"
+                journal.write(cfg_path, full["config_bytes"], step=".vibecoding/config.json %s"
+                              % ("更新" if full["config"] == "updated" else "创建"))
+            if writes[".vibecoding/AGENTS.block.md"]:
+                journal.step = ".vibecoding/AGENTS.block.md"
+                journal.write(os.path.join(project, ".vibecoding", "AGENTS.block.md"),
+                              desired_block.encode("utf-8"), step=".vibecoding/AGENTS.block.md %s"
+                              % ("更新" if full["copy"] == "stale" else "创建"))
+            if writes[".vibecoding/evidence/_template.md"]:
+                journal.step = ".vibecoding/evidence/_template.md"
+                journal.write(os.path.join(project, ".vibecoding", "evidence", "_template.md"),
+                              EVIDENCE_TEMPLATE_BYTES(), step="写入 _template.md")
+            if writes[".vibecoding/HANDOFF.md"]:
+                journal.step = ".vibecoding/HANDOFF.md"
                 ws = "%s @ %s" % (state["branch"], state["head"][:12]) if state["is_repo"] else project
-                baseline = state["head"] if state["is_repo"] else "无版本基线"
-                journal.write(handoff, HANDOFF_TEMPLATE.format(
+                hbase = state["head"] if state["is_repo"] else "无版本基线"
+                journal.write(os.path.join(project, ".vibecoding", "HANDOFF.md"), HANDOFF_TEMPLATE.format(
                     sv=SKILL_VERSION,
                     task="<TASK-ID>",
                     ts=datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z"),
                     workspace=ws,
-                    baseline=baseline,
+                    baseline=hbase,
                     summary="（待填写）",
                     verify="（待填写）",
                     blocked="（待填写）",
@@ -874,11 +1099,17 @@ def _main(argv: list[str]) -> int:
                     hygiene="无",
                     next="（待填写）",
                 ).encode("utf-8"), step=".vibecoding/HANDOFF.md 创建")
-                state_ho = "created"
 
-            # 6) 最后才动用户的 tracked 文件，缩短"已改用户文件"的时间窗
+            # 最后才动用户的 tracked 文件，缩短"已改用户文件"的时间窗
             journal.step = "AGENTS.md"
             plan["action"] = apply_agents(plan, desired_block, args.update_block, project, journal)
+
+            # 写后复核（D-3）：config / 副本 / AGENTS.md 三处必须一致，否则抛错 → 回滚 → rc=1，绝不报告成功
+            journal.step = "写后复核三处一致性"
+            bad = verify_consistent(project, desired_block)
+            if bad:
+                raise RuntimeError("MIXED_STATE：写后复核不一致（%s；标记 %s）"
+                                   % ("; ".join(bad), read_markers(project)))
         except BoundaryError as exc:      # R2-N2：越界或目标被替换，停止初始化
             actions = journal.rollback()
             print("REFUSED: 检测到越界写入风险，已停止初始化（未继续其余步骤）。")
@@ -924,11 +1155,10 @@ def _main(argv: list[str]) -> int:
             return 130
 
         _WRITE_PHASE["done"] = True   # R9-F5：写入已提交；此后的中断不得声称“未写入文件”
+        plan["write"] = writes["AGENTS.md"]
         result["steps"].append(plan)
-        result["steps"].append({"file": ".vibecoding/config.json", "status": state_cfg})
-        result["steps"].append({"file": ".vibecoding/AGENTS.block.md", "status": state_block})
-        result["steps"].append({"file": ".vibecoding/evidence/_template.md", "status": state_ev})
-        result["steps"].append({"file": ".vibecoding/HANDOFF.md", "status": state_ho})
+        for name, lab in done.items():
+            result["steps"].append(_step(name, lab))
 
     claude_md = os.path.join(project, "CLAUDE.md")
     if os.path.exists(claude_md):
@@ -938,14 +1168,15 @@ def _main(argv: list[str]) -> int:
             "解法一：Project instructions 设为 claude-md-and-agents-md。",
             "解法二：在 CLAUDE.md 首行加入 @AGENTS.md。",
         ]
-    # 退出码反映**操作完成后**的真实状态（F-5）：
-    # - 块 differs 且未获 --update-block 授权 → 仍有待决事项 → 2
-    # - 块已按授权更新（block_updated）→ 待决事项已消解 → 0
-    # - 其他未解决问题（拒绝/异常）在上面各分支已返回非零，不会走到这里
+    # 退出码反映**操作完成后**的真实状态（F-5 / S-SKILL-01）：
+    # - 存在冲突（来源不明确 / 副本被用户修改）→ 2，零写入
+    # - 需授权（陈旧块/副本、MIXED_STATE）且未给 --update-block → 2，零写入
+    # - 其余：已按计划写入且写后复核一致 → 0（异常与复核失败在上面已回滚并返回 1）
     action = plan.get("action", "")
-    needs_decision = (plan["status"] == "differs") and (action != "block_updated")
+    needs_decision = blocked
     result["rc"] = 2 if needs_decision else 0
     result["needs_decision"] = needs_decision
+    result["conflict"] = bool(full["conflicts"])
     result["block_updated"] = (action == "block_updated")
 
     if args.json:
@@ -961,10 +1192,22 @@ def _main(argv: list[str]) -> int:
             print("标准校验  : SKIPPED（未验证；不是签收版本声明）")
         else:
             print("标准校验  : rc=%s %s" % (result["standard"]["verify_rc"],
-                  "PASS（固定 v%s 签收清单）" % STANDARD_VERSION if result["standard"]["verify_rc"] == 0 else "见下"))
+                  "PASS（固定 v%s 清单）" % STANDARD_VERSION if result["standard"]["verify_rc"] == 0 else "见下"))
         for line in result["standard"]["verify_tail"]:
             print("            " + line)
         print("Git       : %s" % ("repo=%s branch=%s head=%s dirty=%s" % (state["is_repo"], state["branch"], (state["head"] or "")[:12], state["dirty"]) if state["is_repo"] else "非 Git 仓库"))
+        pl = result.get("plan") or {}
+        if pl.get("legacy_detected"):
+            print("LEGACY_DETECTED: 项目记录为旧版 v%s（只读识别；旧版身份不被信任，需 --update-block 授权升级到 v%s）"
+                  % (pl["legacy_detected"], STANDARD_VERSION))
+        if pl.get("mixed_state"):
+            print("MIXED_STATE: 三处标准版本标记不一致 %s" % json.dumps(pl.get("markers"), ensure_ascii=False))
+        for c in pl.get("conflicts") or []:
+            print("CONFLICT: " + c)
+        for line in (pl.get("agents_diff") or []) + (pl.get("copy_diff") or []):
+            print("    " + line)
+        for a in pl.get("needs_authorization") or []:
+            print("需授权: " + a)
         print("--- 步骤 ---")
         for step in result["steps"]:
             print("  %-34s %-18s %s" % (step.get("file"), step.get("status"), step.get("action", "")))
@@ -972,8 +1215,11 @@ def _main(argv: list[str]) -> int:
             print("--- 需人工处理 ---")
             for line in result["manual_required"]:
                 print("  " + line)
-        if result["rc"] == 2:
-            verdict = "NEED_DECISION（标记块 differs，未获 --update-block 授权）"
+        if result["rc"] == 2 and result.get("conflict"):
+            verdict = "NEED_DECISION / CONFLICT（来源不明确或副本被修改；未写入任何文件，退出码 2）"
+        elif result["rc"] == 2:
+            verdict = "NEED_DECISION（%s，未获 --update-block 授权；未写入任何文件）" % (
+                "MIXED_STATE" if (result.get("plan") or {}).get("mixed_state") else "标记块/副本 differs")
         elif result["block_updated"]:
             verdict = "OK（标记块已更新）"
         else:

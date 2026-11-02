@@ -165,7 +165,7 @@ class TestPositive(Base):
                     "AGENTS.md"):
             self.assertTrue(os.path.isfile(os.path.join(self.proj, rel)), rel)
         cfg = json.loads(self.read(".vibecoding/config.json").decode("utf-8"))
-        self.assertEqual(cfg["standard_version"], "1.2.7")
+        self.assertEqual(cfg["standard_version"], "1.2.8")
         self.assertEqual(cfg["standard_release_commit"], vb_init.STANDARD_RELEASE)
         agents = self.read("AGENTS.md").decode("utf-8")
         self.assertEqual(agents.count("<!-- vibecoding:begin"), 1)
@@ -850,7 +850,7 @@ class TestN1CompensateBoundary(Base):
         cfg_dir = os.path.join(self.proj, ".vibecoding")
         os.makedirs(cfg_dir)
         with open(os.path.join(cfg_dir, "config.json"), "wb") as fh:
-            fh.write(b'{"old": true}\n')           # existed=True ⇒ 补偿走"写回原内容"
+            fh.write(json.dumps(dict(vb_init.LEGACY_IDENTITIES["1.2.7"], standard_version="1.2.7")).encode("utf-8") + b"\n")   # existed=True；S-SKILL-01：须为可识别旧版身份 ⇒ 补偿走"写回原内容"
         self.write("AGENTS.md", "# orig\n")
         ext_file = self.write_outside(ext, "config.json")
 
@@ -919,7 +919,7 @@ class TestN1CompensateBoundary(Base):
         cfg_dir = os.path.join(self.proj, ".vibecoding")
         os.makedirs(cfg_dir)
         with open(os.path.join(cfg_dir, "config.json"), "wb") as fh:
-            fh.write(b'{"old": true}\n')
+            fh.write(json.dumps(dict(vb_init.LEGACY_IDENTITIES["1.2.7"], standard_version="1.2.7")).encode("utf-8") + b"\n")   # S-SKILL-01：须为可识别旧版身份
         self.write("AGENTS.md", "# orig\n")
         self.write_outside(ext, "config.json")
 

@@ -1,6 +1,6 @@
-# Vibecoding 规范 v1.2.7 候选
+# Vibecoding 规范 v1.2.8 候选
 
-版本：1.2.7 候选｜更新：2026-10-23｜适用：Codex / Claude Code / 其他遵守仓库入口规则的 Agent
+版本：1.2.8 候选｜更新：2026-11-02｜适用：Codex / Claude Code / 其他遵守仓库入口规则的 Agent
 
 > 一套规范、一个任务真值源、多个 Agent 共用。不安装程序，不直接修改任何业务仓库。
 
@@ -75,12 +75,12 @@
 
 本包是 **Markdown 工程规则与模板**，不是可执行插件；解压后不会自动配置 MCP、Skills 或修改任何代码仓库。
 
-1. 下载 `Vibecoding规范-v1.2.7-候选-完整整合版.zip`。
+1. 下载 `Vibecoding规范-v1.2.8-候选-完整整合版.zip`。
 2. 先备份本地已有同名目录（如有），**不要直接覆盖未提交的个人修改**。
 3. 解压到目标位置。ZIP 内含单一顶层目录 `Vibecoding规范/`：
 
 ```powershell
-Expand-Archive -LiteralPath "$HOME\Downloads\Vibecoding规范-v1.2.7-候选-完整整合版.zip" -DestinationPath 'F:\DOSS_Project'
+Expand-Archive -LiteralPath "$HOME\Downloads\Vibecoding规范-v1.2.8-候选-完整整合版.zip" -DestinationPath 'D:\work'
 ```
 
 > **不要**解压到已经命名为 `Vibecoding规范` 的文件夹中，否则会形成双层同名目录。
@@ -120,8 +120,55 @@ Expand-Archive -LiteralPath "$HOME\Downloads\Vibecoding规范-v1.2.7-候选-完�
 - `MANIFEST.sha256` 列出发布包内全部文件的 SHA-256（不含清单自身，也不含 `_archive/`、`_review_*/`、`_dist/`）。
 - 校验：`python tools/verify_manifest.py` 和 `python tools/check_links.py`；证据模板可用只读 `python tools/check_evidence.py <evidence.md> --task-id <TASK-xxx> --task-status <REVIEW|DONE|IN_PROGRESS|BLOCKED>` 检查。检查 `DONE` 时还需用任务权威来源提供必要 `--acceptance-id`，否则输出 `UNKNOWN`。省略 `--task-status` 时门禁不判 `PASS`，输出 `UNKNOWN` 并声明未执行 DONE 完整性检查；验收行或总结论为 `FAIL` 时判 `FAIL`。退出码 0=PASS、1=FAIL、2=UNKNOWN，严重度为 `FAIL` > `UNKNOWN` > `PASS`。相对证据路径以证据文件目录为基准，外部索引无法本地验证时输出 `UNKNOWN`。未完成记录不呈现为通过：验收行 `NOT_RUN`/`BLOCKED` 且原因有效时，非 `DONE` 输出 `UNKNOWN`、`DONE` 判 `FAIL`；总结论 `NOT_RUN`/`BLOCKED`/`N/A` 同理；必要验收的 `N/A` 判 `FAIL`。门禁只解析首个连续验收表，不支持跨表聚合验证，不应据此宣称已覆盖全部验收记录。识别边界固定为三档：正式验收表（六类列齐全）全量检查；缺表头分隔行、位于主表之前或列数不足的疑似验收表一律输出 `UNKNOWN` 并给出行号（不得静默忽略，静默忽略即等于假 `PASS`）；普通设计清单与代码示例不参与判定。结果列须为结果语义（`结论 / 结果 / Result / Outcome / 实际`），`预期 / 期望 / Expected / 前置` 属前瞻语义，`用例 ID｜预期结果` 不算执行结论；ID 列支持「验收 ID / 验收编号 / 用例 ID / Acceptance / Case ID」等别名，相邻第二表按表头切分且表头不得被当成数据行；围栏代码块（`` ``` `` / `~~~`）内的表格不参与扫描。额外表内出现 `FAIL` 输出 `UNKNOWN`（不做跨表聚合），但主表中可靠解析出的 `FAIL` 必须判 `FAIL`。报告门禁结论时必须区分「证据结构检查通过」「任务验收通过」与「DONE 完整性判断通过」，不得混为同一结论。重新打包：`python tools/release_zip.py build <输出 zip>`（构建前会强制验证清单与文件哈希）。
 - Windows 亦可用 `Get-FileHash -Algorithm SHA256` 校验关键文件。
-- 版本号保持在文档与 ZIP 文件名中；**不把目录重命名为 `Vibecoding规范1.2.7`**。
+- 仓库自带 `.gitattributes` 固定 LF 换行，**新克隆**在 Windows 默认设置（`core.autocrlf=true`）下即可直接校验；它**不会修复已有旧工作区中已检出的 CRLF 文件**（此时 `git status` 可能显示干净而清单校验失败），处理方法见下文「旧克隆的 CRLF 恢复」。如手动复制文件导致换行被改成 CRLF，清单校验同样会失败，请重新克隆或解压正式 ZIP。
+- 清单自校验只能发现误改与传输损坏，**不能防止恶意替换**；信任边界见 [SECURITY.md](SECURITY.md)。
+- 版本号保持在文档与 ZIP 文件名中；**不把目录重命名为 `Vibecoding规范1.2.8`**。
 - 新项目可一次性采用；老项目应先试点一个任务，避免批量重构。
 - `_archive/` 是历史备份，**不要交给 Agent 当成现行规则**。最新规范始终从 `README.md` / `AI_PROJECT_STANDARD.md` 进入。
 
-> 本次发布包与空间内 `Vibecoding规范/` 文件夹的工作文件保持同一版本；`_archive/`、`_review_*/`、`_dist/` 一律不打进发布包；当前版本 ZIP 不打包自身（避免无限嵌套）。
+> 本次发布包与仓库内工作文件保持同一版本；`_archive/`、`_review_*/`、`_dist/` 一律不打进发布包；当前版本 ZIP 不打包自身（避免无限嵌套）。
+
+### 旧克隆的 CRLF 恢复
+
+适用情形：在加入 `.gitattributes` 之前、以 `core.autocrlf=true` 克隆的旧工作区，切换到 1.2.8 候选后 `python tools/verify_manifest.py` 失败，而 `git status` 显示干净。`.gitattributes` 只保护新克隆与之后新检出的文件，不会自动改写旧工作区中已存在的 CRLF 文件。
+
+**唯一推荐做法（不改动旧工作区）：**
+
+1. 在**新目录**重新克隆：`git clone <规范仓库地址> <新目录>`，切换到目标版本。
+2. 在新目录运行 `python tools/verify_manifest.py`，确认 `PASS` 后再使用。
+3. 在旧工作区用 `git -c core.quotepath=false status` 查看你自己的修改与未跟踪文件（中文路径会按原样显示，而不是 `\346\226…` 这类转义）；逐项核对后手动复制到新目录。确认无遗漏前保留旧目录，不要删除、清理或覆盖它；多人共用的工作区先与其他使用者确认。
+
+本规范**不提供**在旧工作区里删除并重新检出文件的「原地恢复」步骤：
+
+- `git status` 显示干净（或某文件未出现在输出中）**不能证明该文件可以安全删除**。Git 默认 `core.quotepath=true` 时，非 ASCII 路径在输出中被转义，按字面比对会把已修改的中文路径文件误判为未修改，删除后修改无法找回（已实测复现）。
+- 只执行 `git checkout -- <文件>` 不会改变已检出文件的换行；`git add --renormalize .` 也不会修复工作区文件（已实测）。
+- 不要使用 `git reset --hard`、`git clean`、强制检出（`git checkout -f` 等）、批量删除或整体覆盖目录；这些操作会丢弃本地修改或他人的文件。
+- 不要修改 `.gitattributes` 规则来绕过校验。
+
+如无法确认哪些文件属于你、修改是否已全部备份，就停在第 3 步之前，只使用新目录。
+
+### 证据时间行格式（check_evidence.py 实测）
+
+`tools/check_evidence.py` 要求时间行含日期、具体时刻和时区。下表为对本版本（与 1.2.7 行为相同）的实测结果，证据模板 `Time:` 行（写作 `时间：` 实测结果相同）后为填写值；未列出的写法以实际运行结果为准。
+
+| 写法 | 结果 | 说明 |
+|---|---|---|
+| `2026-10-23 12:00 +08:00`、`2026-10-23 12:00:30 +08:00`、`2026-10-23 12:00 +0800` | 支持 | 推荐写法：日期 + 时刻 + 数值偏移 |
+| `2026-10-23T12:00:00+08:00` | 支持 | ISO 8601 带数值偏移 |
+| `2026/10/23 12:00 +08:00` | 支持 | 斜杠日期 |
+| `2026-10-23 12:00 UTC`、`… GMT`、`… Z`（空格分隔） | 支持 | |
+| `2026-10-23 12:00 Asia/Shanghai` | 支持（有限） | 地区名只做格式检查，不查时区数据库；`Mars/Phobos` 这类不存在的名称同样通过，请自行保证正确 |
+| `2026-10-23T12:00:00Z` | UNKNOWN | `Z` 紧贴时刻不识别，请改用 `+00:00` 或空格分隔 |
+| `2026-10-23 12:00 UTC+8`、`UTC+08:00`、`Asia/Shanghai (UTC+8)` | UNKNOWN | 「UTC+偏移」写法与带括号注释不识别 |
+| `2026-10-23 12:00 CST` | UNKNOWN | 有歧义的缩写不支持 |
+| `2026-10-23 12:00`（无时区）、`2026-10-23 +08:00`（无时刻） | UNKNOWN | 缺少时区或时刻 |
+| `2023-02-29 12:00 +08:00`、`25:00`、`+25:00` | UNKNOWN | 非法日期、时刻或偏移（`2024-02-29` 闰日合法） |
+| `2026年10月23日 12:00 +08:00`、时间后附加文字（如 `+08:00 北京时间`）、占位符 | UNKNOWN | 无法可靠解析 |
+
+`UNKNOWN` 时退出码为 2，按「输入不足」处理，不会被当成 `PASS`。
+
+## 六、版权、许可与商标
+
+- **许可状态：尚未授予任何开源许可。** [LICENSE-DRAFT.md](LICENSE-DRAFT.md) 仅为 MIT 许可草案（DRAFT / NOT GRANTED），不构成授权；在版权持有人完成 [COPYRIGHT-CHECKLIST.md](COPYRIGHT-CHECKLIST.md) 并正式发布 `LICENSE` 之前，保留所有权利。
+- **商标与产品名**：文中出现的 Claude、Claude Code、Anthropic、Codex、OpenAI、Cursor、CodeM 等名称归各自权利人所有，仅为说明兼容性而作指称性使用，不表示任何关联、认可或背书。对第三方产品行为的描述以其官方文档为准，并按证据分级标注。
+- **安全**：漏洞报告与清单校验的信任边界见 [SECURITY.md](SECURITY.md)。

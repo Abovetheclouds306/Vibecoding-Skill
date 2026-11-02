@@ -512,7 +512,8 @@ class TestR6N2ModifiedByOthersVariants(R7Helper):
         cfg = os.path.join(self.proj, ".vibecoding", "config.json")
         os.makedirs(os.path.dirname(cfg))
         with open(cfg, "w", encoding="utf-8") as fh:
-            json.dump({"skill_version": "0.0.0-old"}, fh)
+            json.dump(dict(vb_init.LEGACY_IDENTITIES["1.2.7"], skill_version="0.0.0-old",
+                           standard_version="1.2.7"), fh)   # S-SKILL-01：可识别旧版身份
         rc, out = self._run(other_path=cfg)
         self.assertEqual(rc, 1, out)
         with open(cfg, "rb") as fh:
@@ -719,7 +720,7 @@ class TestR4N7TrustedStandard(Base):
     def test_default_run_records_pinned_trust(self):
         rc, out = self.init("--apply")
         self.assertEqual(rc, 0, out)
-        self.assertEqual(self.read_cfg().get("standard_trust"), "pinned-signed-off-v1.2.7")
+        self.assertEqual(self.read_cfg().get("standard_trust"), "pinned-signed-off-v1.2.8")
         agents = self.read_text("AGENTS.md")
         self.assertIn("与签收版本逐字节相同", agents)
 

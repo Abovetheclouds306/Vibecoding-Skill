@@ -15,7 +15,7 @@
   或越出项目时目标目录的上层（只检查目标目录本身、悬空链接及逐文件 realpath 边界）。
 
 标准副本信任（R4-N7）：源与安装后的 vendor/vibecoding-standard 都由安装器自带的
-`vibecoding/scripts/vb_trust.py`（固定 v1.2.7 清单 SHA-256）逐文件核对；不运行被安装目录里的
+`vibecoding/scripts/vb_trust.py`（固定 v1.2.8 清单 SHA-256）逐文件核对；不运行被安装目录里的
 verify_manifest.py。校验器缺失时拒绝安装（fail closed）。源副本不符时一个文件也不写（退出码 1）。
 
 中途失败（无跨文件原子性）：逐文件写入使用临时文件 + 替换，单个文件不会半写；但若在第 N 个文件处失败
@@ -278,7 +278,7 @@ def _main(argv):
         return 1
     src_vrc, src_vlines = trust.verify_pinned(os.path.join(source, *VENDOR_REL))
     if src_vrc != 0:
-        print("REFUSED: 源中的标准副本与固定的 v1.2.7 签收清单不符（rc=%d），未写入任何文件。" % src_vrc)
+        print("REFUSED: 源中的标准副本与固定的 v1.2.8 签收清单不符（rc=%d），未写入任何文件。" % src_vrc)
         for line in src_vlines[-6:]:
             print("  " + line)
         return 1
@@ -440,7 +440,7 @@ def _main(argv):
     ok_skill = os.path.isfile(os.path.join(dest, "SKILL.md"))
     vrc, vlines = trust.verify_pinned(os.path.join(dest, *VENDOR_REL))
     ok_std = (vrc == 0)
-    print("标准校验: rc=%d %s（固定 v1.2.7 签收清单，安装器自带校验器）" % (vrc, vlines[-1:]))
+    print("标准校验: rc=%d %s（固定 v1.2.8 签收清单，安装器自带校验器）" % (vrc, vlines[-1:]))
     print("入口校验: SKILL.md %s" % ("OK" if ok_skill else "MISSING"))
     if not ok_skill or not ok_std:
         rc = 1

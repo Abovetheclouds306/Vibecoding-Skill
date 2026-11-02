@@ -76,3 +76,7 @@ git ls-tree -r <初始提交> -- . ':!PROVENANCE.md'
 | `vibecoding/vendor/vibecoding-standard/tools/update_manifest.py` | `skill/vibecoding/vendor/vibecoding-standard/tools/update_manifest.py` | `9ef18a8e8fac858944ac0d2c5b4035395fc57577` |
 | `vibecoding/vendor/vibecoding-standard/tools/verify_manifest.py` | `skill/vibecoding/vendor/vibecoding-standard/tools/verify_manifest.py` | `4b61134bf528c300d6e6d2b9363b271a91bf84b4` |
 | `vibecoding/vendor/vibecoding-standard/完整任务示例.md` | `skill/vibecoding/vendor/vibecoding-standard/完整任务示例.md` | `57df1aee9167d25072b167604999408c2c7bd362` |
+
+## S-SKILL-01 追加（2026-11-02，Vendor 迁移至 v1.2.8）
+
+上文 v1.2.7 行为历史记录，保持不变。自分支 `feat/standard-v1.2.8-migration` 起，`vibecoding/vendor/vibecoding-standard/` 整体替换为 Standard 签收提交 `2e010b04059172b651c191bf1dbaab279c8d78be`（Tree `1e6c4e65f148353c851318a43cb98846250e8823`）的 `git archive` 导出，38 文件，`MANIFEST.sha256` SHA-256 `ac261bc2bf03b5066070eddf01bf14e9ce10d0b29caaaff10dee8064e50608cd`；发布提交 / Tag / 发布 ZIP SHA 为 PENDING。逐 blob 对照见 `VENDOR-PROVENANCE.md`。
