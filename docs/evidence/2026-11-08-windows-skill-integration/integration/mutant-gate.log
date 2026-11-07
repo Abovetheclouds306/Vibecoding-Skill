@@ -1,0 +1,22 @@
+{
+  "name": "mutant-gate",
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-I",
+    "-B",
+    "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_gate.py",
+    "--project",
+    "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+    "--task",
+    "T-INTEGRATION-MUTANT",
+    "--verify",
+    "\"C:\\Python314\\python.exe\" -I -B run_tests.py",
+    "--task-status",
+    "DONE",
+    "--check-standard"
+  ],
+  "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+  "exit_code": 1,
+  "stdout": "== Vibecoding �Ž� ==\n��Ŀ      : <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\n����      : T-INTEGRATION-MUTANT\n����      : �ް汾���ߣ��� Git �ֿ⣩\n֤���ļ�  : <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\.vibecoding\\evidence\\T-INTEGRATION-MUTANT.md\n����״̬  : DONE\n  [AC-002] rc=1   0.2s  \"C:\\Python314\\python.exe\" -I -B run_tests.py\n--- ֤����д�� ---\n  <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\.vibecoding\\evidence\\T-INTEGRATION-MUTANT.md\n--- ��׼֤���Ž���check_evidence.py��---\n  FAIL: AC-002 ���ս���Ϊ FAIL��\n  FAIL: �ܽ�����ȷΪ FAIL��\n  FAIL: ��Ҫ����δͨ�������ã����� DONE: AC-002\n  == ֤���Ž�: FAIL ==\n== Vibecoding �Ž�: FAIL ==���������=FAIL / �ṹУ��=FAIL��\n   ע�⣺FAIL ��ʾδͨ����δ��֤�����ñ���Ϊͨ����\n",
+  "stderr": ""
+}

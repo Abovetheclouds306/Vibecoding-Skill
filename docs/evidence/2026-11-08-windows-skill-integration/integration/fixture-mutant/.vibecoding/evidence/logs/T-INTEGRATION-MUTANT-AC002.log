@@ -1,0 +1,49 @@
+$ "C:\Python314\python.exe" -I -B run_tests.py
+
+[exit code] 1
+[duration] 0.2s
+
+--- stdout ---
+
+--- stderr ---
+test_above (test_percent.PercentTests.test_above) ... ok
+test_bool (test_percent.PercentTests.test_bool) ... ok
+test_float (test_percent.PercentTests.test_float) ... ok
+test_hundred (test_percent.PercentTests.test_hundred) ... FAIL
+test_middle (test_percent.PercentTests.test_middle) ... FAIL
+test_negative (test_percent.PercentTests.test_negative) ... ok
+test_string (test_percent.PercentTests.test_string) ... ok
+test_zero (test_percent.PercentTests.test_zero) ... FAIL
+
+======================================================================
+FAIL: test_hundred (test_percent.PercentTests.test_hundred)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<TEST_ROOT>\_release\host-evidence\integration-20261108-010759\fixture-mutant\test_percent.py", line 5, in test_hundred
+    def test_hundred(self): self.assertEqual(normalize_percent(100),100)
+                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 101 != 100
+
+======================================================================
+FAIL: test_middle (test_percent.PercentTests.test_middle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<TEST_ROOT>\_release\host-evidence\integration-20261108-010759\fixture-mutant\test_percent.py", line 6, in test_middle
+    def test_middle(self): self.assertEqual(normalize_percent(42),42)
+                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 43 != 42
+
+======================================================================
+FAIL: test_zero (test_percent.PercentTests.test_zero)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<TEST_ROOT>\_release\host-evidence\integration-20261108-010759\fixture-mutant\test_percent.py", line 4, in test_zero
+    def test_zero(self): self.assertEqual(normalize_percent(0),0)
+                         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.002s
+
+FAILED (failures=3)
+

@@ -1,0 +1,15 @@
+{
+  "zip_entry_validation": "PASS: no traversal/absolute/drive/duplicate/symlink entries; allowed text extensions only",
+  "selected_file_count_before_metadata": 49,
+  "common_sensitive_pattern_hits": {
+    "private-key": 0,
+    "bearer-value": 0,
+    "github-token": 0,
+    "api-key": 0,
+    "email-address": 0,
+    "unredacted-home": 0,
+    "machine-id": 0
+  },
+  "manual_scope_review": "Only synthetic fixture code, selected command outputs, test configuration, hashes and reports; no personal message bodies or credentials included.",
+  "limitation": "Pattern review is not an absolute automated no-secrets guarantee. Historical failures retained."
+}

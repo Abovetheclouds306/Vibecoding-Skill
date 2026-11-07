@@ -1,0 +1,175 @@
+{
+  "time_asia_shanghai": "2026-11-08T01:05:27.031999+08:00",
+  "scope_limited_initialization_workflow": "PASS",
+  "independent_exit_code": 0,
+  "project": "<TEST_ROOT>\\project",
+  "checks": [
+    {
+      "check": "installed_skill_all_files_unchanged",
+      "pass": false,
+      "detail": {
+        "baseline_count": 53,
+        "current_count": 54,
+        "differences": [
+          {
+            "path": "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\__pycache__\\vb_trust.cpython-314.pyc",
+            "before": null,
+            "after": "F4FF90171B024076A038DC26BA006A21181A74BD0BA66EED7B621AE380A0B08F"
+          }
+        ]
+      }
+    },
+    {
+      "check": "required_artifacts_present",
+      "pass": true,
+      "detail": [
+        "AGENTS.md",
+        ".vibecoding/AGENTS.block.md",
+        ".vibecoding/config.json",
+        ".vibecoding/HANDOFF.md",
+        ".vibecoding/evidence/_template.md",
+        ".vibecoding/evidence/T-INIT.md",
+        ".vibecoding/evidence/logs/T-INIT-AC001.log",
+        ".vibecoding/evidence/logs/T-INIT-AC002.log"
+      ]
+    },
+    {
+      "check": "config_valid_and_signedoff_identity",
+      "pass": true,
+      "detail": {
+        "skill_version": "0.1.0",
+        "standard_version": "1.2.8",
+        "standard_signoff_commit": "2e010b04059172b651c191bf1dbaab279c8d78be",
+        "standard_release_commit": "PENDING",
+        "standard_vendor_zip_sha256": "PENDING",
+        "standard_vendor_path": "<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard",
+        "standard_trust": "pinned-signed-off-v1.2.8",
+        "initialized_at": "2026-11-08 00:51:35 +0800"
+      }
+    },
+    {
+      "check": "config_vendor_path_expected",
+      "pass": true,
+      "detail": "Only compared config path; no config-derived command was executed."
+    },
+    {
+      "check": "standard_body_and_manifest_exist",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "single_managed_block",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "managed_block_vendor_reference",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "evidence_task_and_log_consistency",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "handoff_matches_task_and_evidence",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "no_git_baseline_in_project",
+      "pass": true,
+      "detail": "Non-Git status also reported in user-provided interactive transcript; no repository was created."
+    },
+    {
+      "check": "minimal_project_file_scope",
+      "pass": true,
+      "detail": {
+        "project_files": [
+          ".vibecoding/AGENTS.block.md",
+          ".vibecoding/HANDOFF.md",
+          ".vibecoding/config.json",
+          ".vibecoding/evidence/T-INIT.md",
+          ".vibecoding/evidence/_template.md",
+          ".vibecoding/evidence/logs/T-INIT-AC001.log",
+          ".vibecoding/evidence/logs/T-INIT-AC002.log",
+          "AGENTS.md"
+        ],
+        "python_files": []
+      }
+    },
+    {
+      "check": "independent_pinned_manifest_verification",
+      "pass": true,
+      "detail": {
+        "command": [
+          "C:\\Python314\\python.exe",
+          "-I",
+          "-B",
+          "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_trust.py",
+          "<USER_HOME>\\.agents\\skills\\vibecoding\\vendor\\vibecoding-standard"
+        ],
+        "exit_code": 0,
+        "stdout": "== 可信校验: PASS（固定清单 v1.2.8；通过 37 / 失败 0 / 缺失 0 / 未登记 0）==\n",
+        "stderr": ""
+      }
+    },
+    {
+      "check": "project_unchanged_by_independent_verification",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "skill_unchanged_during_independent_verification",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "original_53_baseline_files_byte_identical",
+      "pass": true,
+      "detail": "Extra generated __pycache__ is retained and reported separately, not silently excluded."
+    }
+  ],
+  "project_hashes_before": {
+    "AGENTS.md": "A212FD66B2719D5D19AF7D38F11D00431BA76C532F424C79D7901871DB89AD3D",
+    ".vibecoding/AGENTS.block.md": "A212FD66B2719D5D19AF7D38F11D00431BA76C532F424C79D7901871DB89AD3D",
+    ".vibecoding/config.json": "FE32DBA13BB8FABE5BAE6ADA0EF895D4641D002AD0A4ECF2C4930F21F098203F",
+    ".vibecoding/HANDOFF.md": "48FE5AA2F09AB93501F20AD007A0B69F88626512EDE5DD59201B92812DDF40DA",
+    ".vibecoding/evidence/T-INIT.md": "9EDE563CFE2F3B8CBFABADD83F0C18E526E5F19CDD59DA9B59302C2C062EF706",
+    ".vibecoding/evidence/_template.md": "ED8EA07ACD654B382F80E5390A518B324DE48331F35AB2E30B27921FD4441A76",
+    ".vibecoding/evidence/logs/T-INIT-AC001.log": "A32E2745860855F60B032EB822F991544C57BC38E0AA0172C4002C660E390F9B",
+    ".vibecoding/evidence/logs/T-INIT-AC002.log": "7C25C267DAF5A59C4B27D88DF36A5291A8AED3E4722B29222DFD200C1C4DC50C"
+  },
+  "project_hashes_after": {
+    "AGENTS.md": "A212FD66B2719D5D19AF7D38F11D00431BA76C532F424C79D7901871DB89AD3D",
+    ".vibecoding/AGENTS.block.md": "A212FD66B2719D5D19AF7D38F11D00431BA76C532F424C79D7901871DB89AD3D",
+    ".vibecoding/config.json": "FE32DBA13BB8FABE5BAE6ADA0EF895D4641D002AD0A4ECF2C4930F21F098203F",
+    ".vibecoding/HANDOFF.md": "48FE5AA2F09AB93501F20AD007A0B69F88626512EDE5DD59201B92812DDF40DA",
+    ".vibecoding/evidence/T-INIT.md": "9EDE563CFE2F3B8CBFABADD83F0C18E526E5F19CDD59DA9B59302C2C062EF706",
+    ".vibecoding/evidence/_template.md": "ED8EA07ACD654B382F80E5390A518B324DE48331F35AB2E30B27921FD4441A76",
+    ".vibecoding/evidence/logs/T-INIT-AC001.log": "A32E2745860855F60B032EB822F991544C57BC38E0AA0172C4002C660E390F9B",
+    ".vibecoding/evidence/logs/T-INIT-AC002.log": "7C25C267DAF5A59C4B27D88DF36A5291A8AED3E4722B29222DFD200C1C4DC50C"
+  },
+  "user_transcript_evidence": [
+    "Explicit $vibecoding invocation and initialization/task/gate/handoff references loaded.",
+    "Dry-run and apply succeeded; second apply unchanged.",
+    "First complex python -c verification failed in PowerShell quoting with status 1; conversation interrupted.",
+    "Later native always approvals for vb_gate.py and vb_handoff.py; final gate PASS and handoff show succeeded."
+  ],
+  "strict_installation_tree_unchanged": false,
+  "extra_installation_files": [
+    "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\__pycache__\\vb_trust.cpython-314.pyc"
+  ],
+  "boundaries": [
+    "Strict whole-tree no-change check FAILED: 53 original files are unchanged, but scripts/__pycache__/vb_trust.cpython-314.pyc was added during the interval. Cache is not deleted or modified; cannot claim zero skill-tree writes or attribute creator from hashes alone.",
+    "Interactive execution is evidenced by user-supplied transcript, not a new model call or independently captured original session exit code.",
+    "Project contains zero Python files: compileall exit 0 was vacuous for semantic initialization validation. Independent artifact/config/block/path/pinned-manifest checks supply narrower semantic validation.",
+    "No business implementation, business functionality, Git baseline, cross-platform coverage, production release or unattended behavior verified.",
+    "Historical quote failure, interrupted session and help encoding corruption remain observations, not fixed.",
+    "Always-prefix approvals are broader than one-time approval; no approval settings were read or changed.",
+    "Formal release identity remains PENDING; public publication remains PENDING/BLOCKED.",
+    "Original T-INIT evidence still contains pending manual review/omission-review placeholders; this independent report does not rewrite or replace them."
+  ],
+  "blocker_conclusion": "Model-driven initialization unable to execute blocker may be closed for this Windows host and this explicit, user-approved isolated initialization flow only."
+}

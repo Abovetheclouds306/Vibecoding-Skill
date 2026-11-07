@@ -1,0 +1,1 @@
+Isolated local installed-Skill integration fixture; not a business repository. normalize_percent accepts strict integers in 0..100. Eight unittest cases; no bare assert. Mutant intentionally adds one. No Git baseline.

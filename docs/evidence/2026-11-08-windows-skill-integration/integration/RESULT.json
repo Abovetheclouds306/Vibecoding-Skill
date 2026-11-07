@@ -1,0 +1,442 @@
+{
+  "time_asia_shanghai": "2026-11-08T01:08:06.297513+08:00",
+  "scope": "Local deterministic installed CLI/Skill integration; NOT a new model-driven E2E",
+  "status": "PASS",
+  "check_count": 22,
+  "passed": 22,
+  "checks": [
+    {
+      "name": "good-dry-run-no-generated-files",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "good-apply-rc0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "good-idempotent-byte-identical",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "good-eight-real-tests",
+      "pass": true,
+      "detail": {
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "good-gate-expected-result",
+      "pass": true,
+      "detail": {
+        "expected": 0,
+        "actual": 0
+      }
+    },
+    {
+      "name": "good-evidence-records-real-result",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "good-handoff-write-and-show",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "good-no-python-cache",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "good-optimized-assertions-retained",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mutant-dry-run-no-generated-files",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mutant-apply-rc0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mutant-idempotent-byte-identical",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mutant-eight-real-tests",
+      "pass": true,
+      "detail": {
+        "exit_code": 1
+      }
+    },
+    {
+      "name": "mutant-gate-expected-result",
+      "pass": true,
+      "detail": {
+        "expected": 1,
+        "actual": 1
+      }
+    },
+    {
+      "name": "mutant-evidence-records-real-result",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mutant-handoff-write-and-show",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mutant-no-python-cache",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mutant-optimized-assertions-retained",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "installation-tree-54-unchanged",
+      "pass": true,
+      "detail": {
+        "before_count": 54,
+        "after_count": 54,
+        "changed": []
+      }
+    },
+    {
+      "name": "existing-cache-preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "original-project-entirely-unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "original-review-placeholders-retained",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "commands": [
+    {
+      "name": "good-init-dry",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_init.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+        "--json"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "{\n  \"project\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-good\",\n  \"mode\": \"dry-run\",\n  \"steps\": [\n    {\n      \"file\": \"AGENTS.md\",\n      \"status\": \"created\",\n      \"detail\": \"�����ڣ���������д���ǿ�\",\n      \"path\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-good\\\\AGENTS.md\",\n      \"action\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/config.json\",\n      \"status\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/AGENTS.block.md\",\n      \"status\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/evidence/_template.md\",\n      \"status\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/HANDOFF.md\",\n      \"status\": \"would_created\",\n      \"write\": true\n    }\n  ],\n  \"rc\": 0,\n  \"standard\": {\n    \"path\": \"<USER_HOME>\\\\.agents\\\\skills\\\\vibecoding\\\\vendor\\\\vibecoding-standard\",\n    \"source\": \"�������� vendor\",\n    \"vendor_ref\": {\n      \"path\": \"<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard\",\n      \"kind\": \"absolute_external\",\n      \"inside_project\": false,\n      \"condition\": \"��Ŀ�����·�����뱾�����ܰ�װλ�ð󶨣����������ƶ����ܺ�ʧЧ�������� --apply �ض�λ\"\n    },\n    \"verify_rc\": 0,\n    \"verify_tail\": [\n      \"== ����У��: PASS���̶��嵥 v1.2.8��ͨ�� 37 / ʧ�� 0 / ȱʧ 0 / δ�Ǽ� 0��==\"\n    ],\n    \"trust\": \"pinned-signed-off-v1.2.8\"\n  },\n  \"git\": {\n    \"is_repo\": false,\n    \"root\": null,\n    \"head\": null,\n    \"branch\": null,\n    \"dirty\": null\n  },\n  \"plan\": {\n    \"markers\": {\n      \"config\": null,\n      \"AGENTS.md\": null,\n      \".vibecoding/AGENTS.block.md\": null\n    },\n    \"mixed_state\": false,\n    \"legacy_detected\": null,\n    \"needs_authorization\": [],\n    \"conflicts\": [],\n    \"write_set\": [\n      \".vibecoding/AGENTS.block.md\",\n      \".vibecoding/HANDOFF.md\",\n      \".vibecoding/config.json\",\n      \".vibecoding/evidence/_template.md\",\n      \"AGENTS.md\"\n    ],\n    \"copy_diff\": [],\n    \"agents_diff\": [],\n    \"user_modified\": [],\n    \"manual_guidance\": []\n  },\n  \"needs_decision\": false,\n  \"conflict\": false,\n  \"block_updated\": false,\n  \"status\": \"ok\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "good-init-apply",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_init.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+        "--apply",
+        "--json"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "{\n  \"project\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-good\",\n  \"mode\": \"apply\",\n  \"steps\": [\n    {\n      \"file\": \"AGENTS.md\",\n      \"status\": \"created\",\n      \"detail\": \"�����ڣ���������д���ǿ�\",\n      \"path\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-good\\\\AGENTS.md\",\n      \"action\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/config.json\",\n      \"status\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/AGENTS.block.md\",\n      \"status\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/evidence/_template.md\",\n      \"status\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/HANDOFF.md\",\n      \"status\": \"created\",\n      \"write\": true\n    }\n  ],\n  \"rc\": 0,\n  \"standard\": {\n    \"path\": \"<USER_HOME>\\\\.agents\\\\skills\\\\vibecoding\\\\vendor\\\\vibecoding-standard\",\n    \"source\": \"�������� vendor\",\n    \"vendor_ref\": {\n      \"path\": \"<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard\",\n      \"kind\": \"absolute_external\",\n      \"inside_project\": false,\n      \"condition\": \"��Ŀ�����·�����뱾�����ܰ�װλ�ð󶨣����������ƶ����ܺ�ʧЧ�������� --apply �ض�λ\"\n    },\n    \"verify_rc\": 0,\n    \"verify_tail\": [\n      \"== ����У��: PASS���̶��嵥 v1.2.8��ͨ�� 37 / ʧ�� 0 / ȱʧ 0 / δ�Ǽ� 0��==\"\n    ],\n    \"trust\": \"pinned-signed-off-v1.2.8\"\n  },\n  \"git\": {\n    \"is_repo\": false,\n    \"root\": null,\n    \"head\": null,\n    \"branch\": null,\n    \"dirty\": null\n  },\n  \"plan\": {\n    \"markers\": {\n      \"config\": null,\n      \"AGENTS.md\": null,\n      \".vibecoding/AGENTS.block.md\": null\n    },\n    \"mixed_state\": false,\n    \"legacy_detected\": null,\n    \"needs_authorization\": [],\n    \"conflicts\": [],\n    \"write_set\": [\n      \".vibecoding/AGENTS.block.md\",\n      \".vibecoding/HANDOFF.md\",\n      \".vibecoding/config.json\",\n      \".vibecoding/evidence/_template.md\",\n      \"AGENTS.md\"\n    ],\n    \"copy_diff\": [],\n    \"agents_diff\": [],\n    \"user_modified\": [],\n    \"manual_guidance\": []\n  },\n  \"needs_decision\": false,\n  \"conflict\": false,\n  \"block_updated\": false,\n  \"status\": \"ok\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "good-init-idempotent",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_init.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+        "--apply",
+        "--json"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "{\n  \"project\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-good\",\n  \"mode\": \"apply\",\n  \"steps\": [\n    {\n      \"file\": \"AGENTS.md\",\n      \"status\": \"unchanged\",\n      \"detail\": \"��ǿ��Ѵ�����һ�£��ݵȣ�\",\n      \"path\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-good\\\\AGENTS.md\",\n      \"action\": \"no_change\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/config.json\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/AGENTS.block.md\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/evidence/_template.md\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/HANDOFF.md\",\n      \"status\": \"exists(unchanged)\",\n      \"write\": false\n    }\n  ],\n  \"rc\": 0,\n  \"standard\": {\n    \"path\": \"<USER_HOME>\\\\.agents\\\\skills\\\\vibecoding\\\\vendor\\\\vibecoding-standard\",\n    \"source\": \"�������� vendor\",\n    \"vendor_ref\": {\n      \"path\": \"<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard\",\n      \"kind\": \"absolute_external\",\n      \"inside_project\": false,\n      \"condition\": \"��Ŀ�����·�����뱾�����ܰ�װλ�ð󶨣����������ƶ����ܺ�ʧЧ�������� --apply �ض�λ\"\n    },\n    \"verify_rc\": 0,\n    \"verify_tail\": [\n      \"== ����У��: PASS���̶��嵥 v1.2.8��ͨ�� 37 / ʧ�� 0 / ȱʧ 0 / δ�Ǽ� 0��==\"\n    ],\n    \"trust\": \"pinned-signed-off-v1.2.8\"\n  },\n  \"git\": {\n    \"is_repo\": false,\n    \"root\": null,\n    \"head\": null,\n    \"branch\": null,\n    \"dirty\": null\n  },\n  \"plan\": {\n    \"markers\": {\n      \"config\": \"1.2.8\",\n      \"AGENTS.md\": \"1.2.8\",\n      \".vibecoding/AGENTS.block.md\": \"1.2.8\"\n    },\n    \"mixed_state\": false,\n    \"legacy_detected\": null,\n    \"needs_authorization\": [],\n    \"conflicts\": [],\n    \"write_set\": [],\n    \"copy_diff\": [],\n    \"agents_diff\": [],\n    \"user_modified\": [],\n    \"manual_guidance\": []\n  },\n  \"needs_decision\": false,\n  \"conflict\": false,\n  \"block_updated\": false,\n  \"status\": \"ok\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "good-unittest",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "run_tests.py"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_above (test_percent.PercentTests.test_above) ... ok\ntest_bool (test_percent.PercentTests.test_bool) ... ok\ntest_float (test_percent.PercentTests.test_float) ... ok\ntest_hundred (test_percent.PercentTests.test_hundred) ... ok\ntest_middle (test_percent.PercentTests.test_middle) ... ok\ntest_negative (test_percent.PercentTests.test_negative) ... ok\ntest_string (test_percent.PercentTests.test_string) ... ok\ntest_zero (test_percent.PercentTests.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.000s\n\nOK\n"
+    },
+    {
+      "name": "good-gate",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_gate.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+        "--task",
+        "T-INTEGRATION-GOOD",
+        "--verify",
+        "\"C:\\Python314\\python.exe\" -I -B run_tests.py",
+        "--task-status",
+        "DONE",
+        "--check-standard"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+      "exit_code": 0,
+      "stdout": "== Vibecoding �Ž� ==\n��Ŀ      : <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good\n����      : T-INTEGRATION-GOOD\n����      : �ް汾���ߣ��� Git �ֿ⣩\n֤���ļ�  : <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good\\.vibecoding\\evidence\\T-INTEGRATION-GOOD.md\n����״̬  : DONE\n  [AC-002] rc=0   0.2s  \"C:\\Python314\\python.exe\" -I -B run_tests.py\n--- ֤����д�� ---\n  <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good\\.vibecoding\\evidence\\T-INTEGRATION-GOOD.md\n--- ��׼֤���Ž���check_evidence.py��---\n  PASS: ֤�ݽṹ�� DONE �����Լ��ͨ�������������󸲸ǳ�ֻ�������� Review��\n  == ֤���Ž�: PASS ==\n== Vibecoding �Ž�: PASS ==���������=PASS / �ṹУ��=PASS��\n",
+      "stderr": ""
+    },
+    {
+      "name": "good-handoff",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_handoff.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+        "--task",
+        "T-INTEGRATION-GOOD",
+        "--done",
+        "Installed CLI workflow exercised on isolated fixture",
+        "--verify",
+        "8 unittest cases; expected exit 0; gate exit 0",
+        "--blocked",
+        "none",
+        "--effects",
+        "Only this new fixture written",
+        "--hygiene",
+        "No Git baseline; Python -I -B used",
+        "--next",
+        "No business or release readiness claim"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "== ������д�� ==\n  <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good\\.vibecoding\\HANDOFF.md\n  ����: T-INTEGRATION-GOOD\n  ����: �ް汾���ߣ��� Git �ֿ⣩\n",
+      "stderr": ""
+    },
+    {
+      "name": "good-handoff-show",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_handoff.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+        "--show"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "== �ָ���Ϣ��<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good��==\n\n--- 1. �������� ---\n<!-- generated-by: vb_handoff v0.1.0 -->\n# T-INTEGRATION-GOOD ����\n\nUpdated: 2026-11-08 01:08:02 +08:00\nTask source: ����Ŀ��������ϵͳ�����ļ�����������״̬��\nWorkspace: <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good����֧/�ύ�� Baseline��\nBaseline: �ް汾���ߣ��� Git �ֿ⣩\n\n## �����\nInstalled CLI workflow exercised on isolated fixture\n\n## ��֤\n8 unittest cases; expected exit 0; gate exit 0\n\n## δ���������\nnone\n\n## �ѷ������ⲿЧ��\nOnly this new fixture written\n\n## ����������\nNo Git baseline; Python -I -B used\n\n## �ָ�����\n1. `git status --porcelain` �˶�δ�ύ�Ķ��Ĺ�������ǰ״̬���·� recover �������\n2. �� `.vibecoding/evidence/` �����֤�ݣ��˶Խ������˳��롣\n3. ����δ��������������������������и����õĲ��衣\n\n## ��һ��\nNo business or release readiness claim\n\n--- 2. ��ǰ���� ---\n����: �ް汾���ߣ��� Git �ֿ⣩\nδ�ύ�Ķ�:\n���ޣ�\n\n--- 3. ֤���嵥 ---\n  T-INTEGRATION-GOOD.md                    ����=PASS\n\n--- 4. ���� ---\n  skill_version                0.1.0\n  standard_version             1.2.8\n  standard_signoff_commit      2e010b04059172b651c191bf1dbaab279c8d78be\n  standard_release_commit      PENDING\n  initialized_at               2026-11-08 01:08:00 +0800\n\n--- 5. ������һ�� ---\nNo business or release readiness claim\nδ�ջ�֤�ݣ���\n",
+      "stderr": ""
+    },
+    {
+      "name": "good-unittest-optimized",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "-O",
+        "run_tests.py"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_above (test_percent.PercentTests.test_above) ... ok\ntest_bool (test_percent.PercentTests.test_bool) ... ok\ntest_float (test_percent.PercentTests.test_float) ... ok\ntest_hundred (test_percent.PercentTests.test_hundred) ... ok\ntest_middle (test_percent.PercentTests.test_middle) ... ok\ntest_negative (test_percent.PercentTests.test_negative) ... ok\ntest_string (test_percent.PercentTests.test_string) ... ok\ntest_zero (test_percent.PercentTests.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "name": "mutant-init-dry",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_init.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+        "--json"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "{\n  \"project\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\",\n  \"mode\": \"dry-run\",\n  \"steps\": [\n    {\n      \"file\": \"AGENTS.md\",\n      \"status\": \"created\",\n      \"detail\": \"�����ڣ���������д���ǿ�\",\n      \"path\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\\\\AGENTS.md\",\n      \"action\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/config.json\",\n      \"status\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/AGENTS.block.md\",\n      \"status\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/evidence/_template.md\",\n      \"status\": \"would_created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/HANDOFF.md\",\n      \"status\": \"would_created\",\n      \"write\": true\n    }\n  ],\n  \"rc\": 0,\n  \"standard\": {\n    \"path\": \"<USER_HOME>\\\\.agents\\\\skills\\\\vibecoding\\\\vendor\\\\vibecoding-standard\",\n    \"source\": \"�������� vendor\",\n    \"vendor_ref\": {\n      \"path\": \"<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard\",\n      \"kind\": \"absolute_external\",\n      \"inside_project\": false,\n      \"condition\": \"��Ŀ�����·�����뱾�����ܰ�װλ�ð󶨣����������ƶ����ܺ�ʧЧ�������� --apply �ض�λ\"\n    },\n    \"verify_rc\": 0,\n    \"verify_tail\": [\n      \"== ����У��: PASS���̶��嵥 v1.2.8��ͨ�� 37 / ʧ�� 0 / ȱʧ 0 / δ�Ǽ� 0��==\"\n    ],\n    \"trust\": \"pinned-signed-off-v1.2.8\"\n  },\n  \"git\": {\n    \"is_repo\": false,\n    \"root\": null,\n    \"head\": null,\n    \"branch\": null,\n    \"dirty\": null\n  },\n  \"plan\": {\n    \"markers\": {\n      \"config\": null,\n      \"AGENTS.md\": null,\n      \".vibecoding/AGENTS.block.md\": null\n    },\n    \"mixed_state\": false,\n    \"legacy_detected\": null,\n    \"needs_authorization\": [],\n    \"conflicts\": [],\n    \"write_set\": [\n      \".vibecoding/AGENTS.block.md\",\n      \".vibecoding/HANDOFF.md\",\n      \".vibecoding/config.json\",\n      \".vibecoding/evidence/_template.md\",\n      \"AGENTS.md\"\n    ],\n    \"copy_diff\": [],\n    \"agents_diff\": [],\n    \"user_modified\": [],\n    \"manual_guidance\": []\n  },\n  \"needs_decision\": false,\n  \"conflict\": false,\n  \"block_updated\": false,\n  \"status\": \"ok\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "mutant-init-apply",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_init.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+        "--apply",
+        "--json"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "{\n  \"project\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\",\n  \"mode\": \"apply\",\n  \"steps\": [\n    {\n      \"file\": \"AGENTS.md\",\n      \"status\": \"created\",\n      \"detail\": \"�����ڣ���������д���ǿ�\",\n      \"path\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\\\\AGENTS.md\",\n      \"action\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/config.json\",\n      \"status\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/AGENTS.block.md\",\n      \"status\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/evidence/_template.md\",\n      \"status\": \"created\",\n      \"write\": true\n    },\n    {\n      \"file\": \".vibecoding/HANDOFF.md\",\n      \"status\": \"created\",\n      \"write\": true\n    }\n  ],\n  \"rc\": 0,\n  \"standard\": {\n    \"path\": \"<USER_HOME>\\\\.agents\\\\skills\\\\vibecoding\\\\vendor\\\\vibecoding-standard\",\n    \"source\": \"�������� vendor\",\n    \"vendor_ref\": {\n      \"path\": \"<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard\",\n      \"kind\": \"absolute_external\",\n      \"inside_project\": false,\n      \"condition\": \"��Ŀ�����·�����뱾�����ܰ�װλ�ð󶨣����������ƶ����ܺ�ʧЧ�������� --apply �ض�λ\"\n    },\n    \"verify_rc\": 0,\n    \"verify_tail\": [\n      \"== ����У��: PASS���̶��嵥 v1.2.8��ͨ�� 37 / ʧ�� 0 / ȱʧ 0 / δ�Ǽ� 0��==\"\n    ],\n    \"trust\": \"pinned-signed-off-v1.2.8\"\n  },\n  \"git\": {\n    \"is_repo\": false,\n    \"root\": null,\n    \"head\": null,\n    \"branch\": null,\n    \"dirty\": null\n  },\n  \"plan\": {\n    \"markers\": {\n      \"config\": null,\n      \"AGENTS.md\": null,\n      \".vibecoding/AGENTS.block.md\": null\n    },\n    \"mixed_state\": false,\n    \"legacy_detected\": null,\n    \"needs_authorization\": [],\n    \"conflicts\": [],\n    \"write_set\": [\n      \".vibecoding/AGENTS.block.md\",\n      \".vibecoding/HANDOFF.md\",\n      \".vibecoding/config.json\",\n      \".vibecoding/evidence/_template.md\",\n      \"AGENTS.md\"\n    ],\n    \"copy_diff\": [],\n    \"agents_diff\": [],\n    \"user_modified\": [],\n    \"manual_guidance\": []\n  },\n  \"needs_decision\": false,\n  \"conflict\": false,\n  \"block_updated\": false,\n  \"status\": \"ok\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "mutant-init-idempotent",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_init.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+        "--apply",
+        "--json"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "{\n  \"project\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\",\n  \"mode\": \"apply\",\n  \"steps\": [\n    {\n      \"file\": \"AGENTS.md\",\n      \"status\": \"unchanged\",\n      \"detail\": \"��ǿ��Ѵ�����һ�£��ݵȣ�\",\n      \"path\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\\\\AGENTS.md\",\n      \"action\": \"no_change\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/config.json\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/AGENTS.block.md\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/evidence/_template.md\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/HANDOFF.md\",\n      \"status\": \"exists(unchanged)\",\n      \"write\": false\n    }\n  ],\n  \"rc\": 0,\n  \"standard\": {\n    \"path\": \"<USER_HOME>\\\\.agents\\\\skills\\\\vibecoding\\\\vendor\\\\vibecoding-standard\",\n    \"source\": \"�������� vendor\",\n    \"vendor_ref\": {\n      \"path\": \"<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard\",\n      \"kind\": \"absolute_external\",\n      \"inside_project\": false,\n      \"condition\": \"��Ŀ�����·�����뱾�����ܰ�װλ�ð󶨣����������ƶ����ܺ�ʧЧ�������� --apply �ض�λ\"\n    },\n    \"verify_rc\": 0,\n    \"verify_tail\": [\n      \"== ����У��: PASS���̶��嵥 v1.2.8��ͨ�� 37 / ʧ�� 0 / ȱʧ 0 / δ�Ǽ� 0��==\"\n    ],\n    \"trust\": \"pinned-signed-off-v1.2.8\"\n  },\n  \"git\": {\n    \"is_repo\": false,\n    \"root\": null,\n    \"head\": null,\n    \"branch\": null,\n    \"dirty\": null\n  },\n  \"plan\": {\n    \"markers\": {\n      \"config\": \"1.2.8\",\n      \"AGENTS.md\": \"1.2.8\",\n      \".vibecoding/AGENTS.block.md\": \"1.2.8\"\n    },\n    \"mixed_state\": false,\n    \"legacy_detected\": null,\n    \"needs_authorization\": [],\n    \"conflicts\": [],\n    \"write_set\": [],\n    \"copy_diff\": [],\n    \"agents_diff\": [],\n    \"user_modified\": [],\n    \"manual_guidance\": []\n  },\n  \"needs_decision\": false,\n  \"conflict\": false,\n  \"block_updated\": false,\n  \"status\": \"ok\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "mutant-unittest",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "run_tests.py"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "test_above (test_percent.PercentTests.test_above) ... ok\ntest_bool (test_percent.PercentTests.test_bool) ... ok\ntest_float (test_percent.PercentTests.test_float) ... ok\ntest_hundred (test_percent.PercentTests.test_hundred) ... FAIL\ntest_middle (test_percent.PercentTests.test_middle) ... FAIL\ntest_negative (test_percent.PercentTests.test_negative) ... ok\ntest_string (test_percent.PercentTests.test_string) ... ok\ntest_zero (test_percent.PercentTests.test_zero) ... FAIL\n\n======================================================================\nFAIL: test_hundred (test_percent.PercentTests.test_hundred)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 5, in test_hundred\n    def test_hundred(self): self.assertEqual(normalize_percent(100),100)\n                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 101 != 100\n\n======================================================================\nFAIL: test_middle (test_percent.PercentTests.test_middle)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 6, in test_middle\n    def test_middle(self): self.assertEqual(normalize_percent(42),42)\n                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 43 != 42\n\n======================================================================\nFAIL: test_zero (test_percent.PercentTests.test_zero)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 4, in test_zero\n    def test_zero(self): self.assertEqual(normalize_percent(0),0)\n                         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 0\n\n----------------------------------------------------------------------\nRan 8 tests in 0.002s\n\nFAILED (failures=3)\n"
+    },
+    {
+      "name": "mutant-gate",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_gate.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+        "--task",
+        "T-INTEGRATION-MUTANT",
+        "--verify",
+        "\"C:\\Python314\\python.exe\" -I -B run_tests.py",
+        "--task-status",
+        "DONE",
+        "--check-standard"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+      "exit_code": 1,
+      "stdout": "== Vibecoding �Ž� ==\n��Ŀ      : <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\n����      : T-INTEGRATION-MUTANT\n����      : �ް汾���ߣ��� Git �ֿ⣩\n֤���ļ�  : <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\.vibecoding\\evidence\\T-INTEGRATION-MUTANT.md\n����״̬  : DONE\n  [AC-002] rc=1   0.2s  \"C:\\Python314\\python.exe\" -I -B run_tests.py\n--- ֤����д�� ---\n  <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\.vibecoding\\evidence\\T-INTEGRATION-MUTANT.md\n--- ��׼֤���Ž���check_evidence.py��---\n  FAIL: AC-002 ���ս���Ϊ FAIL��\n  FAIL: �ܽ�����ȷΪ FAIL��\n  FAIL: ��Ҫ����δͨ�������ã����� DONE: AC-002\n  == ֤���Ž�: FAIL ==\n== Vibecoding �Ž�: FAIL ==���������=FAIL / �ṹУ��=FAIL��\n   ע�⣺FAIL ��ʾδͨ����δ��֤�����ñ���Ϊͨ����\n",
+      "stderr": ""
+    },
+    {
+      "name": "mutant-handoff",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_handoff.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+        "--task",
+        "T-INTEGRATION-MUTANT",
+        "--done",
+        "Installed CLI workflow exercised on isolated fixture",
+        "--verify",
+        "8 unittest cases; expected exit 1; gate exit 1",
+        "--blocked",
+        "Deliberate +1 mutant; tests and gate must fail",
+        "--effects",
+        "Only this new fixture written",
+        "--hygiene",
+        "No Git baseline; Python -I -B used",
+        "--next",
+        "No business or release readiness claim"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "== ������д�� ==\n  <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\.vibecoding\\HANDOFF.md\n  ����: T-INTEGRATION-MUTANT\n  ����: �ް汾���ߣ��� Git �ֿ⣩\n",
+      "stderr": ""
+    },
+    {
+      "name": "mutant-handoff-show",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_handoff.py",
+        "--project",
+        "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+        "--show"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+      "exit_code": 0,
+      "stdout": "== �ָ���Ϣ��<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant��==\n\n--- 1. �������� ---\n<!-- generated-by: vb_handoff v0.1.0 -->\n# T-INTEGRATION-MUTANT ����\n\nUpdated: 2026-11-08 01:08:05 +08:00\nTask source: ����Ŀ��������ϵͳ�����ļ�����������״̬��\nWorkspace: <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant����֧/�ύ�� Baseline��\nBaseline: �ް汾���ߣ��� Git �ֿ⣩\n\n## �����\nInstalled CLI workflow exercised on isolated fixture\n\n## ��֤\n8 unittest cases; expected exit 1; gate exit 1\n\n## δ���������\nDeliberate +1 mutant; tests and gate must fail\n\n## �ѷ������ⲿЧ��\nOnly this new fixture written\n\n## ����������\nNo Git baseline; Python -I -B used\n\n## �ָ�����\n1. `git status --porcelain` �˶�δ�ύ�Ķ��Ĺ�������ǰ״̬���·� recover �������\n2. �� `.vibecoding/evidence/` �����֤�ݣ��˶Խ������˳��롣\n3. ����δ��������������������������и����õĲ��衣\n\n## ��һ��\nNo business or release readiness claim\n\n--- 2. ��ǰ���� ---\n����: �ް汾���ߣ��� Git �ֿ⣩\nδ�ύ�Ķ�:\n���ޣ�\n\n--- 3. ֤���嵥 ---\n  T-INTEGRATION-MUTANT.md                  ����=FAIL\n\n--- 4. ���� ---\n  skill_version                0.1.0\n  standard_version             1.2.8\n  standard_signoff_commit      2e010b04059172b651c191bf1dbaab279c8d78be\n  standard_release_commit      PENDING\n  initialized_at               2026-11-08 01:08:04 +0800\n\n--- 5. ������һ�� ---\nNo business or release readiness claim\nδ�ջ�֤�ݣ����۷� PASS����\n  - T-INTEGRATION-MUTANT.md������=FAIL��\n",
+      "stderr": ""
+    },
+    {
+      "name": "mutant-unittest-optimized",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-I",
+        "-B",
+        "-O",
+        "run_tests.py"
+      ],
+      "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "test_above (test_percent.PercentTests.test_above) ... ok\ntest_bool (test_percent.PercentTests.test_bool) ... ok\ntest_float (test_percent.PercentTests.test_float) ... ok\ntest_hundred (test_percent.PercentTests.test_hundred) ... FAIL\ntest_middle (test_percent.PercentTests.test_middle) ... FAIL\ntest_negative (test_percent.PercentTests.test_negative) ... ok\ntest_string (test_percent.PercentTests.test_string) ... ok\ntest_zero (test_percent.PercentTests.test_zero) ... FAIL\n\n======================================================================\nFAIL: test_hundred (test_percent.PercentTests.test_hundred)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 5, in test_hundred\n    def test_hundred(self): self.assertEqual(normalize_percent(100),100)\n                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 101 != 100\n\n======================================================================\nFAIL: test_middle (test_percent.PercentTests.test_middle)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 6, in test_middle\n    def test_middle(self): self.assertEqual(normalize_percent(42),42)\n                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 43 != 42\n\n======================================================================\nFAIL: test_zero (test_percent.PercentTests.test_zero)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 4, in test_zero\n    def test_zero(self): self.assertEqual(normalize_percent(0),0)\n                         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 0\n\n----------------------------------------------------------------------\nRan 8 tests in 0.002s\n\nFAILED (failures=3)\n"
+    }
+  ],
+  "test_coverage": {
+    "unittest_cases_per_run": 8,
+    "direct_normal_runs": 2,
+    "gate_runs": 2,
+    "optimized_runs": 2,
+    "expected_mutant_failures_per_run": 3
+  },
+  "review_scope": {
+    "performed": "Automated external artifact/config/block/path/manifest review, plus actual positive/negative unittest gate checks on NEW fixtures.",
+    "not_performed": "No human reviewer signoff or business acceptance; original review and reverse-omission placeholders remain.",
+    "omissions": "Original compileall covered zero .py files; new fixtures supply executable correctness/boundary/negative checks but do not retroactively replace original T-INIT acceptance command."
+  },
+  "risks": [
+    "Previous whole-tree zero-write FAIL remains: historical pyc addition is not erased. Current 54-file tree unchanged is a separate interval.",
+    "First PowerShell quoting failure, interrupted model session, help mojibake remain observations.",
+    "Existing always-prefix approvals broader than one-time approval; no approval configuration read or changed.",
+    "No new model call, no repository clone/modification, no business functionality tested, no formal release signoff.",
+    "Formal release PENDING; public publication PENDING/BLOCKED."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "mutant-init-idempotent",
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-I",
+    "-B",
+    "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_init.py",
+    "--project",
+    "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+    "--apply",
+    "--json"
+  ],
+  "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+  "exit_code": 0,
+  "stdout": "{\n  \"project\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\",\n  \"mode\": \"apply\",\n  \"steps\": [\n    {\n      \"file\": \"AGENTS.md\",\n      \"status\": \"unchanged\",\n      \"detail\": \"��ǿ��Ѵ�����һ�£��ݵȣ�\",\n      \"path\": \"<TEST_ROOT>\\\\_release\\\\host-evidence\\\\integration-20261108-010759\\\\fixture-mutant\\\\AGENTS.md\",\n      \"action\": \"no_change\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/config.json\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/AGENTS.block.md\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/evidence/_template.md\",\n      \"status\": \"unchanged\",\n      \"write\": false\n    },\n    {\n      \"file\": \".vibecoding/HANDOFF.md\",\n      \"status\": \"exists(unchanged)\",\n      \"write\": false\n    }\n  ],\n  \"rc\": 0,\n  \"standard\": {\n    \"path\": \"<USER_HOME>\\\\.agents\\\\skills\\\\vibecoding\\\\vendor\\\\vibecoding-standard\",\n    \"source\": \"�������� vendor\",\n    \"vendor_ref\": {\n      \"path\": \"<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard\",\n      \"kind\": \"absolute_external\",\n      \"inside_project\": false,\n      \"condition\": \"��Ŀ�����·�����뱾�����ܰ�װλ�ð󶨣����������ƶ����ܺ�ʧЧ�������� --apply �ض�λ\"\n    },\n    \"verify_rc\": 0,\n    \"verify_tail\": [\n      \"== ����У��: PASS���̶��嵥 v1.2.8��ͨ�� 37 / ʧ�� 0 / ȱʧ 0 / δ�Ǽ� 0��==\"\n    ],\n    \"trust\": \"pinned-signed-off-v1.2.8\"\n  },\n  \"git\": {\n    \"is_repo\": false,\n    \"root\": null,\n    \"head\": null,\n    \"branch\": null,\n    \"dirty\": null\n  },\n  \"plan\": {\n    \"markers\": {\n      \"config\": \"1.2.8\",\n      \"AGENTS.md\": \"1.2.8\",\n      \".vibecoding/AGENTS.block.md\": \"1.2.8\"\n    },\n    \"mixed_state\": false,\n    \"legacy_detected\": null,\n    \"needs_authorization\": [],\n    \"conflicts\": [],\n    \"write_set\": [],\n    \"copy_diff\": [],\n    \"agents_diff\": [],\n    \"user_modified\": [],\n    \"manual_guidance\": []\n  },\n  \"needs_decision\": false,\n  \"conflict\": false,\n  \"block_updated\": false,\n  \"status\": \"ok\"\n}\n",
+  "stderr": ""
+}

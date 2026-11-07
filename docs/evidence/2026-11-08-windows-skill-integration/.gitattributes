@@ -1,0 +1,4 @@
+# Archived sanitized evidence. Keep payload bytes exact, including CRLF.
+# Root '* text=auto eol=lf' must not rewrite these files; SANITIZED-SHA256SUMS
+# covers the sanitized payload bytes only, not pre-redaction history.
+* -text !eol

@@ -1,0 +1,14 @@
+{
+  "name": "mutant-unittest-optimized",
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-I",
+    "-B",
+    "-O",
+    "run_tests.py"
+  ],
+  "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "test_above (test_percent.PercentTests.test_above) ... ok\ntest_bool (test_percent.PercentTests.test_bool) ... ok\ntest_float (test_percent.PercentTests.test_float) ... ok\ntest_hundred (test_percent.PercentTests.test_hundred) ... FAIL\ntest_middle (test_percent.PercentTests.test_middle) ... FAIL\ntest_negative (test_percent.PercentTests.test_negative) ... ok\ntest_string (test_percent.PercentTests.test_string) ... ok\ntest_zero (test_percent.PercentTests.test_zero) ... FAIL\n\n======================================================================\nFAIL: test_hundred (test_percent.PercentTests.test_hundred)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 5, in test_hundred\n    def test_hundred(self): self.assertEqual(normalize_percent(100),100)\n                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 101 != 100\n\n======================================================================\nFAIL: test_middle (test_percent.PercentTests.test_middle)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 6, in test_middle\n    def test_middle(self): self.assertEqual(normalize_percent(42),42)\n                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 43 != 42\n\n======================================================================\nFAIL: test_zero (test_percent.PercentTests.test_zero)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\test_percent.py\", line 4, in test_zero\n    def test_zero(self): self.assertEqual(normalize_percent(0),0)\n                         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 0\n\n----------------------------------------------------------------------\nRan 8 tests in 0.002s\n\nFAILED (failures=3)\n"
+}

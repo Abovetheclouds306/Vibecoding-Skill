@@ -1,0 +1,22 @@
+$ "C:\Python314\python.exe" -I -B run_tests.py
+
+[exit code] 0
+[duration] 0.2s
+
+--- stdout ---
+
+--- stderr ---
+test_above (test_percent.PercentTests.test_above) ... ok
+test_bool (test_percent.PercentTests.test_bool) ... ok
+test_float (test_percent.PercentTests.test_float) ... ok
+test_hundred (test_percent.PercentTests.test_hundred) ... ok
+test_middle (test_percent.PercentTests.test_middle) ... ok
+test_negative (test_percent.PercentTests.test_negative) ... ok
+test_string (test_percent.PercentTests.test_string) ... ok
+test_zero (test_percent.PercentTests.test_zero) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.000s
+
+OK
+
