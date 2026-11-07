@@ -38,10 +38,13 @@ python scripts/vb_init.py --project <项目> --apply    # 落盘
 | 不存在 | 创建，内容＝标记块 | `created` | `0` |
 | 存在、无标记 | **追加**标记块（原有内容一字不改） | `appended` | `0` |
 | 存在、有标记且内容相同 | 不动 | `unchanged`（幂等） | `0` |
-| 存在、有标记，内容为可证明的**工具生成陈旧块**（与冻结的历史模板或当前生成契约逐字节一致） | 不动，报差异 | `differs` + `skipped(需 --update-block)` | **`2`** |
+| 存在、有标记，内容为可证明的**工具生成陈旧块**（normalize 后与冻结历史模板或当前生成契约相等；normalize=CRLF→LF、逐行 rstrip、整体 strip，**不是**原始逐字节） | 不动，报差异 | `differs` + `skipped(需 --update-block)` | **`2`** |
 | 同上 + `--update-block` | **更新块内内容**，块外一字不动；`.vibecoding/AGENTS.block.md` 同步 | `differs` + `block_updated` | **`0`** |
 | 标记块或 `.vibecoding/AGENTS.block.md` 被用户修改（含两处做了相同修改），或来源无法证明 | 不动，输出分类、路径、原因、有限差异（不回显当前内容）与人工处置指引 | `USER_MODIFIED` / `USER_MODIFIED_OR_UNKNOWN`，`NEED_DECISION` | **`2`**（**含 `--update-block`**，零写入） |
 | 其他冲突（CONFLICT / MIXED_STATE / LEGACY_DETECTED / config 来源不明等） | 不动 | 见输出 | **`2`**（零写入） |
+
+
+> **归属证明边界（R16-N1）**：可信渲染的规范路径**只**来自本次 `vb_init` 独立解算（`vendor_reference`），**不**采信可编辑的 `.vibecoding/config.json.standard_vendor_path`，**不**从标记块 / 副本正文提取路径或版本再反证可信。项目或技能移动后旧块若与本次解算路径不一致，判 `USER_MODIFIED` 并 rc=2 零写入，需人工按输出指引处理。
 
 > **退出码以操作完成后的真实状态为准**：`--update-block`（仅对工具生成的陈旧块生效）成功即表示"待你决定的事项已经决定并执行"，因此返回 `0`，横幅同步显示 `OK（标记块已更新）`。只有当差异**尚未**被授权处理时才返回 `2`。写入失败则返回非零，绝不冒充成功。
 

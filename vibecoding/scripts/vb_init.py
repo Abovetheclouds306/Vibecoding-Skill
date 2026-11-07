@@ -641,6 +641,7 @@ def split_block(text: str) -> tuple[int, int] | None:
 
 
 def normalize(text: str) -> str:
+    """Ownership compare normalization: CRLF->LF, per-line rstrip, strip ends.\n\n    Not raw byte equality. Trailing whitespace / newline style / leading-trailing blank\n    lines are indistinguishable from tool output for ownership. BOM / lone CR / in-line\n    whitespace changes are outside this normalization (usually USER_MODIFIED; safe refuse).\n    """
     return "\n".join(line.rstrip() for line in text.replace("\r\n", "\n").split("\n")).strip()
 
 
@@ -719,12 +720,15 @@ def _block_std(text: str | None) -> str | None:
 
 
 # ---------------------------------------------------------------- 受管块归属判据
-# AGENTS.md 标记块与 .vibecoding/AGENTS.block.md 只有在**逐字（normalize 后）等于**某个可信生成契约的
-# 渲染结果时，才被认定为“工具生成”。可信生成契约 = 本文件内冻结的模板文本 × 已发布工具版本 ×
-# 已知标准版本 × 冻结的校验声明 × 由工具独立得到的规范定位（本次解算；或身份已识别的 config.json 记录）。
-# - **从不**从待验证内容中提取版本 / 路径再渲染来证明它可信；
+# AGENTS.md 标记块与 .vibecoding/AGENTS.block.md 只有在**normalize 后等于**某个可信生成契约的
+# 渲染结果时，才被认定为“工具生成”。normalize = CRLF→LF、逐行 rstrip、整体 strip（不是原始逐字节比较）。
+# 可信生成契约 = 本文件内冻结的模板文本 × 已发布工具版本 × 已知标准版本 × 冻结的校验声明
+# × **仅**由本次工具独立解算得到的规范定位（vendor_reference / 本次传入的 vref）。
+# - **从不**采用可编辑的 `.vibecoding/config.json`（含 `standard_vendor_path`）参与可信渲染；
+# - **从不**从待验证的标记块 / 副本中提取版本 / 路径再渲染来证明它可信；
 # - **从不**以“标记块 == 副本”推断未被修改（两处都可被用户改成相同内容）；
 # - 无法证明来源 → USER_MODIFIED（版本可识别）/ USER_MODIFIED_OR_UNKNOWN，rc=2 零写入，--update-block 也不覆盖。
+#   项目或技能移动后、旧块路径与本次解算不一致时，保守拒绝并交人工处置（安全方向）。
 # 旧版模板只用于只读识别；运行时信任仍只来自 vb_trust 的单一固定清单。
 # v1.2.7 工具（skill 0.1.0）生成的块模板，逐字冻结；SHA-256 由测试钉住。
 LEGACY_BLOCK_TEMPLATE_V127 = """<!-- vibecoding:begin skill={sv} standard={std} -->
@@ -756,8 +760,9 @@ TRUSTED_GENERATION = (
     (STANDARD_VERSION, BLOCK, (SKILL_VERSION,), (STD_CLAIM_TRUSTED, STD_CLAIM_SKIPPED)),
 )
 KNOWN_STANDARD_VERSIONS = tuple(g[0] for g in TRUSTED_GENERATION)
-OWNERSHIP_REASON = ("内容不等于任何可信生成契约（冻结模板 × 已发布工具版本 × 已知标准版本 × 工具独立得到的规范定位）"
-                    "的渲染结果，无法证明由工具生成；--update-block 只升级可证明由工具生成的陈旧受管块，不覆盖用户修改或来源不明的内容")
+OWNERSHIP_REASON = ("内容不等于任何可信生成契约（冻结模板 × 已发布工具版本 × 已知标准版本 × 本次工具独立解算的规范定位）"
+                    "的渲染结果，无法证明由工具生成；--update-block 只升级可证明由工具生成的陈旧受管块，不覆盖用户修改或来源不明的内容；"
+                    "可编辑 config.json 不参与归属证明")
 MANUAL_GUIDANCE = (
     "本次未写入任何文件（rc=2）；--update-block 不会覆盖上述内容。",
     "对照下方有限差异确认哪些改动需要保留；需保留的内容请移到 AGENTS.md 标记块之外（工具从不改动标记块外的字节）。",
@@ -767,23 +772,20 @@ MANUAL_GUIDANCE = (
 DIFF_MAX_LINES = 12
 
 
-def _vendor_refs(vref: dict, recorded_path) -> list:
-    refs = [(vref["path"], vref["condition"])]
-    if isinstance(recorded_path, str) and recorded_path and recorded_path != vref["path"]:
-        absolute = recorded_path.startswith("/") or bool(re.match(r"^[A-Za-z]:/", recorded_path))
-        refs.append((recorded_path, VENDOR_COND_ABSOLUTE if absolute else VENDOR_COND_RELATIVE))
-    return refs
+def trusted_renderings(vref: dict) -> dict:
+    """normalize(trusted rendering) -> standard version.
 
-
-def trusted_renderings(vref: dict, recorded_path=None) -> dict:
-    """normalize(可信渲染) -> 标准版本。参数全部来自冻结常量与工具独立得到的定位，不读被测内容。"""
+    Inputs are frozen constants plus THIS RUN's independently resolved vref only.
+    Never reads the block/copy under test, and never reads editable
+    config.json.standard_vendor_path (N1 / R16 recheck).
+    """
     out: dict = {}
+    path, cond = vref["path"], vref["condition"]
     for std, tpl, svs, claims in TRUSTED_GENERATION:
         for sv in svs:
             for claim in claims:
-                for path, cond in _vendor_refs(vref, recorded_path):
-                    out.setdefault(normalize(tpl.format(sv=sv, std=std, std_claim=claim.format(std=std),
-                                                        vendor_path=path, vendor_condition=cond)), std)
+                out.setdefault(normalize(tpl.format(sv=sv, std=std, std_claim=claim.format(std=std),
+                                                    vendor_path=path, vendor_condition=cond)), std)
     return out
 
 
@@ -896,7 +898,6 @@ def build_plan(project: str, agents_plan: dict, desired_block: str, manifest: di
         _p = manifest["standard_vendor_path"]
         vref = {"path": _p, "condition": VENDOR_COND_ABSOLUTE if (_p.startswith("/") or re.match(r"^[A-Za-z]:/", _p))
                 else VENDOR_COND_RELATIVE}
-    recorded_path = None
     vb = os.path.join(project, ".vibecoding")
     out: dict = {"conflicts": [], "auth": [], "legacy": None, "config_bytes": None, "copy_diff": []}
 
@@ -921,7 +922,6 @@ def build_plan(project: str, agents_plan: dict, desired_block: str, manifest: di
             prev_std = prev.get("standard_version")
             if all(prev.get(k) == manifest.get(k) for k in STABLE_FIELDS):
                 out["config"] = "unchanged"
-                recorded_path = prev.get("standard_vendor_path")
             else:
                 ident = config_identity(prev)
                 if ident is None:
@@ -930,14 +930,14 @@ def build_plan(project: str, agents_plan: dict, desired_block: str, manifest: di
                                             "来源不明确，不推断、不覆盖" % (prev_std,))
                 else:
                     out["config"] = "updated"
-                    recorded_path = prev.get("standard_vendor_path")   # 仅身份已识别时作为独立定位来源
                     if ident == "legacy":
                         out["legacy"] = prev_std
                     new_cfg["initialized_at"] = prev.get("initialized_at") or manifest["initialized_at"]
     out["config_bytes"] = (json.dumps(new_cfg, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
     # 2) / 3) 受管块归属：AGENTS.md 标记块与副本逐文件独立判定（见“受管块归属判据”）。
-    trusted = trusted_renderings(vref, recorded_path)
+    # N1: trusted renderings use this-run vref only; never config.standard_vendor_path.
+    trusted = trusted_renderings(vref)
     out["user_modified"] = []
     out["agents_diff"] = []
 

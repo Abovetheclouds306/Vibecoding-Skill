@@ -258,5 +258,135 @@ class TestLimitedDiff(unittest.TestCase):
         self.assertIn("已省略", d[-1])
 
 
+
+class TestConfigPathNotTrusted(Own):
+    """N1：可编辑 config.standard_vendor_path 不得参与可信渲染（R16 recheck T1/T2/T2a/T3）。"""
+
+    SECRET2 = "R16RC_SECRET_do-not-echo-91c2"
+    RESOLVED = "**本次初始化解算**："
+
+    def _vref_path(self):
+        return vb_init.vendor_reference(self.proj, vb_init.find_standard(self.proj, None)[0])["path"]
+
+    def _cond(self):
+        return vb_init.vendor_reference(self.proj, vb_init.find_standard(self.proj, None)[0])["condition"]
+
+    def _set_cfg_path(self, path):
+        p = self.p(os.path.join(".vibecoding", "config.json"))
+        cfg = json.loads(rd(p))
+        cfg["standard_vendor_path"] = path
+        wr(p, json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
+
+    def _inj_line_after_resolved(self, text):
+        nl = "\r\n" if "\r\n" in text else "\n"
+        lines = text.split(nl)
+        k = [i for i, l in enumerate(lines) if self.RESOLVED in l][0]
+        inj = "  - **团队私有约定**：" + self.SECRET2 + " `x`（" + self._cond() + "）。"
+        return nl.join(lines[: k + 1] + [inj] + lines[k + 1:])
+
+    def test_t1_custom_path_in_block_copy_and_config_refused(self):
+        """三处路径改成同一自定义值：不得因 config 记录而判 STALE。"""
+        self.assertEqual(self.init("--apply")[0], 0)
+        custom = "D:/team/custom-standard" if os.name == "nt" else "/team/custom-standard"
+        vp = self._vref_path()
+        for rel in (AG, CP):
+            wr(self.p(rel), rd(self.p(rel), newline="").replace("`%s`" % vp, "`%s`" % custom), newline="")
+        self._set_cfg_path(custom)
+        before = snapshot(self.proj)
+        self.assert_refused([BLK, CPY], "USER_MODIFIED")
+        self.assertEqual(snapshot(self.proj), before)
+
+    def test_t2_crafted_config_path_with_injected_line_block_and_copy(self):
+        """config 路径被拼进用户行，使「用 config 路径重渲染」会包含 SECRET → 必须拒绝。"""
+        self.assertEqual(self.init("--apply")[0], 0)
+        for rel in (AG, CP):
+            wr(self.p(rel), self._inj_line_after_resolved(rd(self.p(rel), newline="")), newline="")
+        inj_path = self._vref_path() + "`（" + self._cond() + "）。\n  - **团队私有约定**：" + self.SECRET2 + " `x"
+        self._set_cfg_path(inj_path)
+        before = snapshot(self.proj)
+        for extra in ((), ("--update-block",), ("--update-block", "--allow-dirty")):
+            for mode in ((), ("--apply",)):
+                rc, out = self.init(*(mode + extra))
+                self.assertEqual(rc, 2, out)
+                self.assertIn("USER_MODIFIED", out)
+                self.assertNotIn(self.SECRET2, out)
+                self.assertNotIn("would_", out)
+                self.assertEqual(snapshot(self.proj), before)
+                self.assertIn(self.SECRET2, rd(self.p(AG)))
+                self.assertIn(self.SECRET2, rd(self.p(CP)))
+
+    def test_t2a_crafted_config_path_block_only(self):
+        """仅改块 + 篡改 config；副本原样。"""
+        self.assertEqual(self.init("--apply")[0], 0)
+        wr(self.p(AG), self._inj_line_after_resolved(rd(self.p(AG), newline="")), newline="")
+        inj_path = self._vref_path() + "`（" + self._cond() + "）。\n  - **团队私有约定**：" + self.SECRET2 + " `x"
+        self._set_cfg_path(inj_path)
+        before = snapshot(self.proj)
+        rc, out = self.init("--apply", "--update-block")
+        self.assertEqual(rc, 2, out)
+        self.assertIn("USER_MODIFIED", out)
+        self.assertNotIn(self.SECRET2, out)
+        self.assertEqual(snapshot(self.proj), before)
+        self.assertIn(self.SECRET2, rd(self.p(AG)))
+
+    def test_t3_legacy_crafted_config_path(self):
+        """v1.2.7 legacy 身份 + 同上注入。"""
+        self.make_legacy()
+        for rel in (AG, CP):
+            wr(self.p(rel), self._inj_line_after_resolved(rd(self.p(rel), newline="")), newline="")
+        inj_path = self._vref_path() + "`（" + self._cond() + "）。\n  - **团队私有约定**：" + self.SECRET2 + " `x"
+        self._set_cfg_path(inj_path)
+        before = snapshot(self.proj)
+        rc, out = self.init("--apply", "--update-block")
+        self.assertEqual(rc, 2, out)
+        self.assertIn("USER_MODIFIED", out)
+        self.assertEqual(snapshot(self.proj), before)
+        self.assertIn(self.SECRET2, rd(self.p(AG)))
+
+
+class TestOwnershipProofHardening(Own):
+    """针对性抓住从被测内容自证的变异（M2b/M2c/M6）及过度归一化（M5）。"""
+
+    def test_skill_header_only_change_refused(self):
+        """只改块头 skill=（其余不变）→ 不得因「换成当前 skill 再比对」而信任（杀 M2b）。"""
+        self.assertEqual(self.init("--apply")[0], 0)
+        for rel in (AG, CP):
+            t = rd(self.p(rel), newline="")
+            wr(self.p(rel), t.replace("skill=" + vb_init.SKILL_VERSION, "skill=9.9.9", 1), newline="")
+        self.assert_refused([BLK, CPY], "USER_MODIFIED")
+
+    def test_path_line_only_in_block_refused(self):
+        """仅块内改解算路径行（副本未改）→ 拒绝（加强 M2/M2c）。"""
+        self.assertEqual(self.init("--apply")[0], 0)
+        vp = vb_init.vendor_reference(self.proj, vb_init.find_standard(self.proj, None)[0])["path"]
+        wr(self.p(AG), rd(self.p(AG), newline="").replace("`%s`" % vp, "`elsewhere/evil-standard`"), newline="")
+        self.assert_refused([BLK], "USER_MODIFIED")
+
+    def test_internal_whitespace_change_refused(self):
+        """行内插入空格（非行尾）不得被过度 normalize 吞掉（杀 M5 类）。"""
+        self.assertEqual(self.init("--apply")[0], 0)
+        t = rd(self.p(AG), newline="")
+        # insert space inside a word that exists in the block
+        self.assertIn("工程纪律", t)
+        wr(self.p(AG), t.replace("工程纪律", "工程 纪律", 1), newline="")
+        self.assert_refused([BLK], "USER_MODIFIED")
+
+    def test_standard_header_only_change_refused(self):
+        """只改块头 standard=（杀「忽略头行再比对」M6）。"""
+        self.assertEqual(self.init("--apply")[0], 0)
+        for rel in (AG, CP):
+            t = rd(self.p(rel), newline="")
+            wr(self.p(rel), t.replace("standard=" + NEW, "standard=9.9.9", 1), newline="")
+        self.assert_refused([BLK, CPY], "USER_MODIFIED_OR_UNKNOWN")
+
+    def test_no_recorded_path_helper(self):
+        """实现层：trusted_renderings 只接受 vref；无 _vendor_refs / recorded_path。"""
+        import inspect
+        src = inspect.getsource(vb_init)
+        self.assertNotIn("def _vendor_refs", src)
+        self.assertNotIn("recorded_path", src)
+        sig = inspect.signature(vb_init.trusted_renderings)
+        self.assertEqual(list(sig.parameters), ["vref"])
+
 if __name__ == "__main__":
     unittest.main()
