@@ -1,0 +1,12 @@
+{
+  "source_zip_sha256": "9bb9f792b02437fa661064de179a63c38b85b37cd05e4aaeb26afa1bca6937c4",
+  "source_zip_file_count": 45,
+  "independent_report_original_sha256": "16f4cf23047c13bf249f8ee2513c743f55287b33d0f7f56b95d961d45df18730",
+  "operations": "Read original ZIP/report; validate entry safety; text redaction; new attachment only. No test/model/Git execution.",
+  "redactions": [
+    "test root -> <TEST_ROOT>",
+    "user home -> <USER_HOME>",
+    "machine identifiers -> <MACHINE>"
+  ],
+  "timestamp_zone": "Asia/Shanghai UTC+08:00"
+}

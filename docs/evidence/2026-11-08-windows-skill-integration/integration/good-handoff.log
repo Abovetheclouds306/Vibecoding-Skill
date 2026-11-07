@@ -1,0 +1,29 @@
+{
+  "name": "good-handoff",
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-I",
+    "-B",
+    "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_handoff.py",
+    "--project",
+    "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+    "--task",
+    "T-INTEGRATION-GOOD",
+    "--done",
+    "Installed CLI workflow exercised on isolated fixture",
+    "--verify",
+    "8 unittest cases; expected exit 0; gate exit 0",
+    "--blocked",
+    "none",
+    "--effects",
+    "Only this new fixture written",
+    "--hygiene",
+    "No Git baseline; Python -I -B used",
+    "--next",
+    "No business or release readiness claim"
+  ],
+  "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+  "exit_code": 0,
+  "stdout": "== ������д�� ==\n  <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good\\.vibecoding\\HANDOFF.md\n  ����: T-INTEGRATION-GOOD\n  ����: �ް汾���ߣ��� Git �ֿ⣩\n",
+  "stderr": ""
+}

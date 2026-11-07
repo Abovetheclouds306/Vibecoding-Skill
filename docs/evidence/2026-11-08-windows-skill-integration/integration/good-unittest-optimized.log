@@ -1,0 +1,14 @@
+{
+  "name": "good-unittest-optimized",
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-I",
+    "-B",
+    "-O",
+    "run_tests.py"
+  ],
+  "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-good",
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "test_above (test_percent.PercentTests.test_above) ... ok\ntest_bool (test_percent.PercentTests.test_bool) ... ok\ntest_float (test_percent.PercentTests.test_float) ... ok\ntest_hundred (test_percent.PercentTests.test_hundred) ... ok\ntest_middle (test_percent.PercentTests.test_middle) ... ok\ntest_negative (test_percent.PercentTests.test_negative) ... ok\ntest_string (test_percent.PercentTests.test_string) ... ok\ntest_zero (test_percent.PercentTests.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK\n"
+}

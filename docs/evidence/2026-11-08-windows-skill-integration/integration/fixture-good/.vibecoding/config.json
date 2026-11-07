@@ -1,0 +1,10 @@
+{
+  "skill_version": "0.1.0",
+  "standard_version": "1.2.8",
+  "standard_signoff_commit": "2e010b04059172b651c191bf1dbaab279c8d78be",
+  "standard_release_commit": "PENDING",
+  "standard_vendor_zip_sha256": "PENDING",
+  "standard_vendor_path": "<USER_HOME>/.agents/skills/vibecoding/vendor/vibecoding-standard",
+  "standard_trust": "pinned-signed-off-v1.2.8",
+  "initialized_at": "2026-11-08 01:08:00 +0800"
+}

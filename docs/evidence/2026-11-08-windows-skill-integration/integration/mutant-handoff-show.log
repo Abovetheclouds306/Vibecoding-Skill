@@ -1,0 +1,16 @@
+{
+  "name": "mutant-handoff-show",
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-I",
+    "-B",
+    "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_handoff.py",
+    "--project",
+    "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+    "--show"
+  ],
+  "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+  "exit_code": 0,
+  "stdout": "== �ָ���Ϣ��<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant��==\n\n--- 1. �������� ---\n<!-- generated-by: vb_handoff v0.1.0 -->\n# T-INTEGRATION-MUTANT ����\n\nUpdated: 2026-11-08 01:08:05 +08:00\nTask source: ����Ŀ��������ϵͳ�����ļ�����������״̬��\nWorkspace: <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant����֧/�ύ�� Baseline��\nBaseline: �ް汾���ߣ��� Git �ֿ⣩\n\n## �����\nInstalled CLI workflow exercised on isolated fixture\n\n## ��֤\n8 unittest cases; expected exit 1; gate exit 1\n\n## δ���������\nDeliberate +1 mutant; tests and gate must fail\n\n## �ѷ������ⲿЧ��\nOnly this new fixture written\n\n## ����������\nNo Git baseline; Python -I -B used\n\n## �ָ�����\n1. `git status --porcelain` �˶�δ�ύ�Ķ��Ĺ�������ǰ״̬���·� recover �������\n2. �� `.vibecoding/evidence/` �����֤�ݣ��˶Խ������˳��롣\n3. ����δ��������������������������и����õĲ��衣\n\n## ��һ��\nNo business or release readiness claim\n\n--- 2. ��ǰ���� ---\n����: �ް汾���ߣ��� Git �ֿ⣩\nδ�ύ�Ķ�:\n���ޣ�\n\n--- 3. ֤���嵥 ---\n  T-INTEGRATION-MUTANT.md                  ����=FAIL\n\n--- 4. ���� ---\n  skill_version                0.1.0\n  standard_version             1.2.8\n  standard_signoff_commit      2e010b04059172b651c191bf1dbaab279c8d78be\n  standard_release_commit      PENDING\n  initialized_at               2026-11-08 01:08:04 +0800\n\n--- 5. ������һ�� ---\nNo business or release readiness claim\nδ�ջ�֤�ݣ����۷� PASS����\n  - T-INTEGRATION-MUTANT.md������=FAIL��\n",
+  "stderr": ""
+}

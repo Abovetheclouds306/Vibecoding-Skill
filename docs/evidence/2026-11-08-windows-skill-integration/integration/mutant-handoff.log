@@ -1,0 +1,29 @@
+{
+  "name": "mutant-handoff",
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-I",
+    "-B",
+    "<USER_HOME>\\.agents\\skills\\vibecoding\\scripts\\vb_handoff.py",
+    "--project",
+    "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant",
+    "--task",
+    "T-INTEGRATION-MUTANT",
+    "--done",
+    "Installed CLI workflow exercised on isolated fixture",
+    "--verify",
+    "8 unittest cases; expected exit 1; gate exit 1",
+    "--blocked",
+    "Deliberate +1 mutant; tests and gate must fail",
+    "--effects",
+    "Only this new fixture written",
+    "--hygiene",
+    "No Git baseline; Python -I -B used",
+    "--next",
+    "No business or release readiness claim"
+  ],
+  "cwd": "<TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759",
+  "exit_code": 0,
+  "stdout": "== ������д�� ==\n  <TEST_ROOT>\\_release\\host-evidence\\integration-20261108-010759\\fixture-mutant\\.vibecoding\\HANDOFF.md\n  ����: T-INTEGRATION-MUTANT\n  ����: �ް汾���ߣ��� Git �ֿ⣩\n",
+  "stderr": ""
+}

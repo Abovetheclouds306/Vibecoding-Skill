@@ -1,0 +1,7 @@
+$ vb_trust.verify_pinned (固定 v1.2.8 签收清单; dir=<USER_HOME>\.agents\skills\vibecoding\vendor\vibecoding-standard)
+
+[exit code] 0
+
+--- output ---
+== 可信校验: PASS（固定清单 v1.2.8；通过 37 / 失败 0 / 缺失 0 / 未登记 0）==
+
