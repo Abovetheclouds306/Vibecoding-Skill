@@ -39,6 +39,59 @@ def rb(p):
         return fh.read()
 
 
+def legacy_block(proj, skipped=False):
+    """渲染可证明的 v1.2.7 工具块：用冻结模板 × 旧版身份 × 本次独立解算的 vendor_path。
+
+    禁止对全文做 NEW→OLD 字符串替换：工作树/技能路径若含版本号（如 …-v1.2.8-migration），
+    会把规范绝对路径改坏，归属判定变成 USER_MODIFIED 假红。
+    """
+    home = vb_init.find_standard(proj, None)[0]
+    vref = vb_init.vendor_reference(proj, home)
+    sv = vb_init.TRUSTED_GENERATION[0][2][0]
+    claim = vb_init.LEGACY_STD_CLAIMS_V127[1 if skipped else 0].format(std=OLD)
+    return vb_init.LEGACY_BLOCK_TEMPLATE_V127.format(
+        sv=sv, std=OLD, std_claim=claim,
+        vendor_path=vref["path"], vendor_condition=vref["condition"])
+
+
+def _with_file_eol(text_lf: str, path: str) -> str:
+    """模板为 LF；按目标文件既有 EOL 写出，避免 CRLF 文件上字符串替换静默失败。"""
+    eol = vb_init.detect_eol(path).decode("ascii") if os.path.isfile(path) else "\n"
+    return text_lf.replace("\n", "\r\n") if eol == "\r\n" else text_lf
+
+
+def install_legacy_blocks(proj, agents=True, copy=True, skipped=False):
+    leg = legacy_block(proj, skipped=skipped)
+    if agents:
+        p = os.path.join(proj, "AGENTS.md")
+        t = rd(p, newline="")
+        span = vb_init.split_block(t)
+        if span is None:
+            raise AssertionError("install_legacy_blocks: AGENTS.md 无 vibecoding 标记块")
+        s, e = span
+        wr(p, t[:s] + _with_file_eol(leg, p) + t[e:], newline="")
+    if copy:
+        p = os.path.join(proj, ".vibecoding", "AGENTS.block.md")
+        wr(p, _with_file_eol(leg, p), newline="")
+    markers = vb_init.read_markers(proj)
+    if agents and markers.get("AGENTS.md") != OLD:
+        raise AssertionError("install_legacy_blocks: AGENTS.md 未变为 legacy: %r" % markers)
+    if copy and markers.get(".vibecoding/AGENTS.block.md") != OLD:
+        raise AssertionError("install_legacy_blocks: 副本未变为 legacy: %r" % markers)
+    home = vb_init.find_standard(proj, None)[0]
+    trusted = vb_init.trusted_renderings(vb_init.vendor_reference(proj, home))
+    if agents:
+        cls = vb_init.classify_managed(block_of(proj), "unused-desired", trusted)
+        if cls != "TOOL_GENERATED_STALE":
+            raise AssertionError("install_legacy_blocks: AGENTS 块非 TOOL_GENERATED_STALE: %s" % cls)
+    if copy:
+        cls = vb_init.classify_managed(
+            rd(os.path.join(proj, ".vibecoding", "AGENTS.block.md"), newline=""),
+            "unused-desired", trusted)
+        if cls != "TOOL_GENERATED_STALE":
+            raise AssertionError("install_legacy_blocks: 副本非 TOOL_GENERATED_STALE: %s" % cls)
+
+
 GITC = ["-c", "user.name=vbtest", "-c", "user.email=vbtest@example.invalid", "-c", "commit.gpgsign=false"]
 
 
@@ -48,20 +101,12 @@ class Mig(Base):
         return rc, json.loads(out)
 
     def make_legacy(self, agents=True, copy=True, config=True, user_text=True):
-        """先用新版初始化，再把选定的三处改写成 v1.2.7 工具产物（块文本仅版本号不同）。"""
+        """先用新版初始化，再把选定的三处改写成 v1.2.7 工具产物（路径保持本次解算值）。"""
         if user_text:
             self.write("AGENTS.md", "# 用户规则\n\n保留这一段。\n")
         rc, out = self.init("--apply")
         self.assertEqual(rc, 0, out)
-        if agents:
-            p = os.path.join(self.proj, "AGENTS.md")
-            t = rd(p, newline="")
-            blk = block_of(self.proj)
-            wr(p, t.replace(blk, blk.replace(NEW, OLD)), newline="")
-        if copy:
-            p = os.path.join(self.proj, ".vibecoding", "AGENTS.block.md")
-            t = rd(p, newline="")
-            wr(p, t.replace(NEW, OLD), newline="")
+        install_legacy_blocks(self.proj, agents=agents, copy=copy, skipped=False)
         if config:
             p = os.path.join(self.proj, ".vibecoding", "config.json")
             cfg = json.loads(rd(p))

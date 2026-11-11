@@ -19,7 +19,7 @@ sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from test_vb_init import snapshot, vb_init, block_of  # noqa: E402
-from test_s_skill_01 import Mig, rd, wr, rb, OLD, NEW, REPO  # noqa: E402
+from test_s_skill_01 import Mig, rd, wr, rb, OLD, NEW, REPO, install_legacy_blocks  # noqa: E402
 
 LEGACY_TEMPLATE_SHA256 = "cc8882721d097a8bd1f1f54a4ed9ce10612a52e0f1703f9c691b7c130f7adf43"
 SKIP_MARK = "使用了 --skip-standard-check"
@@ -113,12 +113,19 @@ class TestScenarios(Own):
         self.assertEqual(rc, 0, out)
         self.assert_consistent()
 
+    def test_s02c_legacy_fixture_ok_when_skill_path_contains_version(self):
+        """回归钉：技能绝对路径含 STANDARD_VERSION 时，legacy 夹具仍须可授权升级（禁 NEW→OLD 污染路径）。"""
+        self.assertIn(NEW, os.path.abspath(REPO).replace("\\", "/"))
+        self.make_legacy()
+        rc, out = self.init("--apply", "--update-block")
+        self.assertEqual(rc, 0, out)
+        self.assert_consistent()
+
     def test_s02b_legacy_skip_claim_is_tool_generated(self):
         """v1.2.7 以 --skip-standard-check 生成的块同样属于可信契约 → 授权可升级。"""
         rc, out = self.init("--apply", "--skip-standard-check")
         self.assertEqual(rc, 0, out)
-        for rel in (AG, CP):
-            wr(self.p(rel), rd(self.p(rel), newline="").replace(NEW, OLD), newline="")
+        install_legacy_blocks(self.proj, skipped=True)
         rc, out = self.init("--apply")
         self.assertEqual(rc, 2, out)
         rc, out = self.init("--apply", "--update-block")
@@ -228,8 +235,7 @@ class TestScenarios(Own):
         with open(self.p(AG), "ab") as fh:
             fh.write(b"\r\n## \xe5\x90\x8e\xe7\xbc\x80\r\ntail-bytes\r\n")
         self.write("notes.txt", "其他文件\n")
-        for rel in (AG, CP):
-            wr(self.p(rel), rd(self.p(rel), newline="").replace(NEW, OLD), newline="")
+        install_legacy_blocks(self.proj)
         raw = rb(self.p(AG))
         t = raw.decode("utf-8")
         s, e = vb_init.split_block(t)
