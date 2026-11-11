@@ -2,7 +2,7 @@
 
 ## 1. 目标与范围
 - 基线：c08407d6a779124efff295cf4716400fbd7c6786（poc/vibecoding-skill-v0.1.0，未改动）。
-- 工作树：`F:\DOSS_Project\_worktrees\Vibecoding-Skill-v0.1.0-fix`，分支 `fix/skill-ins1-cli-v0.1.1`（仅本地，未推送）。
+- 工作树：`<worktree>/Vibecoding-Skill-v0.1.0-fix`，分支 `fix/skill-ins1-cli-v0.1.1`（历史记录；当时仅本地）。
 - 范围：P0 INS-1（安装器 --force 删除未知内容）；P1 CLI 契约（--json 失败、--update-block rc、BLOCK 防漂移、vendor 搬迁、技能缺失如实、幂等）。
 - 未改：`skill/vibecoding/vendor/**`、main、v1.2.7、POC 分支及其工作树。
 
@@ -140,7 +140,7 @@
 ## 私有基线交接（2026-11-11；Owner 已签收 BASELINE；非正式 Release）
 
 ### 范围与 tip
-- 工作树：`F:\DOSS_Project\_worktrees\Vibecoding-Skill-v1.2.8-migration`（分支 `feat/standard-v1.2.8-migration`）。
+- 工作树：`<worktree>/Vibecoding-Skill-v1.2.8-migration`（分支 `feat/standard-v1.2.8-migration`）。
 - **签收基线**：功能 tip `49be330` + 状态文档 `1378828`；本段签收提交合入后为最新 `main`（以 `git rev-parse origin/main` 为准）。
 - 相对旧 `main` `19f83be`：含 R12 收尾、S-SKILL-01（vendor → v1.2.8 候选 `2e010b0`）、归属加固、Windows 集成证据包、legacy 夹具修复。
 

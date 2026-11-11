@@ -13,7 +13,7 @@
 | Cursor | `<repo>/.cursor/skills/vibecoding/` 或 `.agents/skills/vibecoding/` | `~/.cursor/skills/vibecoding/` |
 | WorkBuddy | `<repo>/.codebuddy/skills/vibecoding/`（文档口径）或 `.workbuddy/skills/`（内置指引口径） | `~/.codebuddy/skills/` 或 `~/.workbuddy/skills/` |
 
-> WorkBuddy 用户级路径存在两套文档口径，本机两个目录都存在。安装脚本用 `--target` 显式指定，避免靠猜。
+> WorkBuddy 用户级路径存在两套文档口径；作者环境观测（2026-10）两目录均曾存在。安装脚本用 `--target` 显式指定，避免靠猜。
 
 一键安装（在本仓库根目录执行；附带脚本，只做复制 + 校验，不改系统配置）：
 

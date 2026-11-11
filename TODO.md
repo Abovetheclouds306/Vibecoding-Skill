@@ -96,5 +96,6 @@
 | IR-1 | 合入前独立复核：legacy 夹具 NEW→OLD 污染含版本号路径 | CLOSED | 假红；`49be330` 改为冻结模板×解算 vref + `split_block`/EOL + 断言；回归钉 `test_s02c` |
 | IR-2 | 合入前独立复核：CRLF 下块替换静默失败 | CLOSED | 同 `49be330` |
 | BASELINE | 私有工程基线冻结（非正式 Release） | CLOSED（Owner 签收 2026-11-11） | 签收 tip 文档基线 `1378828`（含夹具修复 `49be330`）。后由 C-REL 升至 Standard 私有正式身份 |
-| C-REL | 阶段 C：Standard v1.2.8 私有正式发版 → Skill 钉扎 | 自测 PASS（本轮） | Standard `main`/`v1.2.8` @ `d9abf27`；ZIP SHA `6f3ca956…`；Skill vendor=`git archive d9abf27`；`vb_trust` 钉 `28303d4c…`。**仍非公开 OSS**（LICENSE-DRAFT）。仍 OPEN：VENDOR-SCOPE、OSP-1、R11-RES-*、R9-RES-1、LNK-F |
+| C-REL | 阶段 C：Standard v1.2.8 私有正式发版 → Skill 钉扎 | 自测 PASS | Standard `v1.2.8` @ `d9abf27`；Skill tip 见 `git log -1`；**仍非公开 OSS** |
+| OSP-1 | 开源准备审计 | IN_PROGRESS（阶段 D） | 预热：CI、HANDOFF 路径 scrub、description 收窄、OPEN_SOURCE_PREP 刷新。**阻断公开**：L1/L2/R9-f（许可与 Standard 再分发）。仍 OPEN：VENDOR-SCOPE、R11-RES-*、R9-RES-1、LNK-F、I1 |
 

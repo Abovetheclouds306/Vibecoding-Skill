@@ -19,8 +19,8 @@
 | 能力 | Claude Code | Codex | Cursor | WorkBuddy |
 | --- | --- | --- | --- | --- |
 | 读 `SKILL.md` | ✅ | ✅ | ✅ | ✅ |
-| 项目级目录 | `.claude/skills/` | `.agents/skills/`（从 CWD 逐级向上到仓库根） | `.cursor/skills/`、`.agents/skills/`（递归，含嵌套子目录） | 文档写 `.codebuddy/skills/`；**本机另有 `~/.workbuddy/skills/`** |
-| 用户级目录 | `~/.claude/skills/` | `$HOME/.agents/skills/` | `~/.cursor/skills/`、`~/.agents/skills/` | 文档写 `~/.codebuddy/skills/`；本机 `~/.workbuddy/skills/` 也存在 |
+| 项目级目录 | `.claude/skills/` | `.agents/skills/`（从 CWD 逐级向上到仓库根） | `.cursor/skills/`、`.agents/skills/`（递归，含嵌套子目录） | 文档写 `.codebuddy/skills/`；作者环境另见 `~/.workbuddy/skills/` |
+| 用户级目录 | `~/.claude/skills/` | `$HOME/.agents/skills/` | `~/.cursor/skills/`、`~/.agents/skills/` | 文档写 `~/.codebuddy/skills/`；作者环境观测亦见 `~/.workbuddy/skills/` |
 | **自动发现**（不点名就出现在列表） | ✅ 启动时加载 name+description | ✅ 启动时扫描，初始列表有预算上限 | ✅ 自动加载 | ✅ |
 | **自动激活**（按 description 匹配任务） | ✅ 默认开启 | ✅ 隐式调用 | ✅（按描述相关时应用） | ✅（"AI 根据任务自动选择"） |
 | **显式调用** | `/skill-name`（须在消息开头） | `/skills` 或 `$skill-name` | `/skill-name` 或 `@skill-name` | `/skill-name` |
@@ -32,14 +32,14 @@
 
 **Codex 的 `allow_implicit_invocation: false`**：见于第三方文章（`agents/openai.yaml` 的 `policy`），**官方页面未确认** → 标 `UNVERIFIED`，本 POC 不使用该配置。
 
-## 三、本机实测状态（2026-10-25）
+## 三、作者环境观测（2026-10-25）
 
-| 平台 | 本机可用性 | 本 POC 做了什么 | 结论级别 |
+| 平台 | 作者环境可用性 | 本 POC 做了什么 | 结论级别 |
 | --- | --- | --- | --- |
 | Claude Code | `claude 2.1.303` 可用；`~/.claude/skills/` 存在（25 项） | 在隔离示例项目装项目级技能，跑真实 `claude -p` 观察是否自动激活 | 见 POC 报告 §自动激活证据 |
 | Codex | `codex` 可执行（版本命令有告警输出） | 目录结构兼容性检查；真实激活尝试结果见报告 | 见 POC 报告 |
-| Cursor | **无 `cursor-agent` CLI**，本机无 `~/.cursor/skills/` | 仅做目录/字段级静态核对 | 自动激活 **NOT_RUN** |
-| WorkBuddy | 当前会话宿主；`~/.workbuddy/skills/` 与 `~/.codebuddy/skills/` 均存在 | 项目级安装 + 结构核对；会话内无法热加载新技能 | 真实激活 **NOT_RUN**（需新会话） |
+| Cursor | **无 `cursor-agent` CLI**，观测时无 `~/.cursor/skills/` | 仅做目录/字段级静态核对 | 自动激活 **NOT_RUN** |
+| WorkBuddy | 当时会话宿主；`~/.workbuddy/skills/` 与 `~/.codebuddy/skills/` 均存在 | 项目级安装 + 结构核对；会话内无法热加载新技能 | 真实激活 **NOT_RUN**（需新会话） |
 
 ## 四、路径口径分歧（WorkBuddy）
 
@@ -49,7 +49,7 @@
 - `workbuddy.ai/docs/cli/skills`：项目 `.codebuddy/skills/`、用户 `~/.codebuddy/skills/`
 - 平台内置的 `skill-creator` 指引：`~/.workbuddy/skills/`、`.workbuddy/skills/`
 
-本机两个目录都存在，**无法在单会话内判定宿主实际扫描哪个** → `NOT_RUN`。
+作者环境两目录均曾存在，**无法在单会话内判定宿主实际扫描哪个** → `NOT_RUN`。
 **POC 的做法**：安装脚本同时支持 `--target` 显式指定，并在两个候选路径各放一份（可 `--dry-run` 预览），把"猜路径"变成"显式参数"。
 
 ## 五、必须向用户明说的限制

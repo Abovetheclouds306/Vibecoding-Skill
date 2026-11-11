@@ -1,47 +1,44 @@
-# OPEN_SOURCE_PREP — 公开前审计清单（仅审计，未修复）
+# OPEN_SOURCE_PREP — 公开前审计清单
 
-状态：本仓库为 **PRIVATE**。以下是公开前必须由 Owner 决定/处理的发现；本轮按授权**只记录不修改**（vendor 目录更是禁止修改）。行号以本文件所在提交为准。
+状态：仓库仍为 **PRIVATE**。阶段 D（2026-11-11）起开始处理；**L1/L2/R9-f 仍阻断公开**（待 Owner 确认许可与再分发）。  
+行号以处理时为准；vendor 不得就地改，须经 Standard 发版后整体替换。
 
-| # | 领域 | 发现（file:line） | 严重度 | 建议 |
-|---|---|---|---|---|
-| L1 | 许可证 | `vibecoding/SKILL.md:4` `license: Proprietary`；仓库无 `LICENSE` 文件 | 阻断公开 | Owner 选定开源许可证，新增 LICENSE 并改 SKILL.md:4 |
-| L2 | 许可证 | vendor 标准自身条款仅指向 `vendor/vibecoding-standard/README.md`；需确认 Standard 是否允许再分发 | 阻断公开 | 确认 Standard 许可；必要时 Standard 侧发版补许可 |
-| L3 | 版权 | 全仓无版权声明（grep `Copyright\|版权` 0 命中） | 中 | 随 LICENSE 补充 |
-| P1 | 私有历史 | `HANDOFF.md` 全文为私有评审过程（R4–R8 分支、提交号、`%TEMP%\vbdev_r7/r8` 等），例 `HANDOFF.md:5,49,60,73,88,92,103` | 高 | 公开前精简或移出 |
-| P2 | 本地路径 | `HANDOFF.md:5` `F:\DOSS_Project\_worktrees\...` | 高 | 删除 |
-| P3 | 本地路径（vendor，不可就地改） | `vibecoding/vendor/vibecoding-standard/README.md:83`、`docs/Agent接入指南.md:57,60-63,67,101`、`templates/CLAUDE.md.template:13` 含 `F:\DOSS_Project\...` | 高 | 只能在 Standard 侧发新版后整体替换 vendor |
-| P4 | 私有仓库链接 | `vendor/.../docs/Agent接入指南.md:20,60` 指向私有 `Abovetheclouds306/Vibecoding-Standard`；`PROVENANCE.md:7` 同 | 中 | 公开时说明来源为私有或改为公开地址 |
-| P5 | 身份 | 提交作者 `hankaizhou <791934306@qq.com>`（全部提交）；`TODO.md:42-43`、`HANDOFF.md:56` 提及 "Chris" | 中 | Owner 决定是否改用 noreply 邮箱（需重写历史，须另批） |
-| D1 | DOSS/Nexus 示例 | vendor：`AI_PROJECT_STANDARD.md:105`、`CHANGELOG.md:60,138,163`、`docs/Agent接入指南.md:76`、`完整任务示例.md:3`（已声明为教学示例） | 低-中 | 属 Standard 内容，随 Standard 处理 |
-| D2 | 内部环境描述 | vendor `CHANGELOG.md:89,121`、`agents/Claude-Code.md:71,76` 提及"本机自建网关" | 低 | 同上 |
-| V1 | 版本标识 | `SKILL.md:7,15`、`vibecoding/README.md:1`、`scripts/vb_init.py:46`、`vb_gate.py:22`、`vb_handoff.py:20`、`assets/AGENTS.block.md:1` 均为 `0.1.0`（POC），而来源分支名为 `v0.1.1` 且包含 R4–R8 修复 | 中 | 发版时统一定版本号（改动会影响注入块 marker 与测试，需单独提交） |
-| V2 | 版本/哈希命名 | `SKILL.md:12` `standard_vendored_sha256` 实为 ZIP 包哈希，不是目录/清单哈希；可信判据是 `vb_trust.py` 的 `PINNED_MANIFEST_SHA256`（见 VENDOR-PROVENANCE.md） | 低 | 改名或补注释（改 frontmatter 字段需 Owner 确认） |
-| V3 | 本机措辞 | `vibecoding/README.md:16`、`references/06-platform-capabilities.md:22-23,35-52` 用"本机"描述作者环境观测 | 低 | 改为"作者环境观测（日期）" |
-| I1 | 干净机器安装 | 安装命令已改为仓库根 `python tools/install_skill.py ...`（`vibecoding/README.md:18-25`）；开发自测在临时目录完成安装、重复安装幂等（见 HANDOFF R9 段）。**未**在另一台真正干净的机器/非 Windows 系统上跑 | 中 | 公开前在 Linux/macOS 干净环境复跑 |
-| I2 | 重装 | 安装器不删除文件，源中删除的文件在目标残留（设计如此，`tools/install_skill.py` 文档串）；无卸载命令 | 低 | 文档补卸载说明或提供卸载脚本 |
-| A1 | 自动激活范围 | `SKILL.md:3` description 很宽（"starting or resuming development work in a repository"），可能在任何仓库被宿主自动激活；`vibecoding/README.md:47` 已声明"不保证激活"；`README.md:78`/`06-platform-capabilities.md:41,52` Cursor/WorkBuddy 自动激活 NOT_RUN | 中 | 公开前收窄 description 或明确说明激活范围 |
+| # | 领域 | 状态 | 说明 |
+|---|---|---|---|
+| L1 | Skill 许可证 | **阻断** | `SKILL.md` 仍 `Proprietary`；仅有 `LICENSE-DRAFT`。待 Owner 选定许可证 + 版权人/年份 → 正式 `LICENSE` |
+| L2 | Standard 再分发 | **阻断** | vendor 随 Skill 分发；Standard 仍 `LICENSE-DRAFT` / COPYRIGHT-CHECKLIST 未完成。待 Owner 书面确认可再分发并完成 Standard 侧 LICENSE |
+| L3 | 版权声明 | 待 L1 | 随正式 LICENSE 补充 |
+| P1 | HANDOFF 私有评审痕迹 | 部分 | 仍含 R4–R12 过程；公开前可再精简或迁 `docs/internal/` |
+| P2 | HANDOFF 本地绝对路径 | **本轮已 scrub** | 改为 `<worktree>/...` 占位 |
+| P3 | vendor 内 `F:\DOSS_...` | **已过时** | v1.2.8 正式 vendor 已去私有化；2026-11-11 复查无命中 |
+| P4 | 私有仓链接 | 待公开策略 | 公开时改公开地址或注明私有来源 |
+| P5 | 提交者邮箱 / “Chris” | 待 Owner | 改 noreply 需历史重写（另批）；Owner 称呼可保留 |
+| D1/D2 | vendor 示例/环境措辞 | 低 | 随 Standard；现行 v1.2.8 已大幅中性化 |
+| V1 | Skill 版本仍 0.1.0 POC | 中 | 公开发版时单独统一版本（影响 marker，另提交） |
+| V2 | `standard_vendored_sha256` 语义 | 低 | 已是 ZIP 哈希；文档已说明 |
+| V3 | “本机”措辞 | **本轮部分** | `references/06`、`vibecoding/README` 改为作者环境观测 |
+| I1 | 非 Windows 干净机 | 仍 NOT_RUN | 公开前补 |
+| I2 / R9-g | 卸载说明 | **已有** | 根 README + `vibecoding/README` §七 |
+| A1 | 自动激活过宽 | **本轮收窄** | `SKILL.md` description 改为显式/点名触发导向 |
+| R9-a | 换行 / vendor 字节 | 保持 | CI 已加 `vb_trust` |
+| R9-b | 根 README | **已有** | 安装/校验/卸载/许可入口 |
+| R9-c | Actions | **本轮加 CI** | `.github/workflows/ci.yml`：`vb_trust` + unittest |
+| R9-d | 评审痕迹 | 同 P1 | |
+| R9-e | 中断恢复 | 文档已有 | |
+| R9-f | 再分发许可 | **阻断** | 同 L2 |
+| R10-a/b | 安全模型 | **已有** | 见根 `SECURITY.md` |
+| R11/R12 | 信任根文档等 | 已合 | |
+| R12-a | 公开树 / vendor v1.2.8 | **私有正式已就绪** | 公开仍待 L1/L2 |
 
-| R9-a | 换行策略 | 已加 `.gitattributes`（`* text=auto eol=lf`，`vibecoding/vendor/** -text`，R9-F2）；公开前确认所有贡献者/平台遵守，vendor 字节必须原样 | 中 | 保持；CI 中加 vb_trust 检查 |
-| R9-b | 仓库入口 | 仓库根无 `README.md`（说明在 `vibecoding/README.md`） | 中 | 公开前加根 README |
-| R9-c | Actions | 仓库 Actions 启用、allowed_actions=all，但无 workflow | 中 | Owner 决定：加 CI workflow 或收紧/关闭 Actions |
-| R9-d | 私有评审痕迹 | `TODO.md`、`HANDOFF.md`、`OPEN_SOURCE_PREP.md` 含 R4–R10 评审 ID 与内部提交 SHA | 中 | 公开前精简或移出（同 P1） |
-| R9-e | 中断恢复 | 恢复需“加 --force 重跑”（R9-F4 已更正文档）；无跨文件原子性，中断后残留部分文件 | 低 | 公开文档保留该说明 |
-| R9-f | 再分发许可 | 需 Standard 所有者书面确认允许随技能再分发 vendor 副本（同 L2） | 阻断公开 | Owner 决定 |
-| R9-g | 卸载 | 无卸载说明/命令（同 I2）：手工删除目标技能目录（含 `.vibecoding-install.json`）即可；项目内 `.vibecoding/` 与 AGENTS 注入块需手工移除 | 低 | 公开前写入 README |
+## 本轮已做（阶段 D 预热，未公开）
 
-| R10-a | 安全模型（R10-N1） | 外部标准目录的无源 .pyc 曾可被执行；R11 改为只执行已核对字节的私有副本（-I -B），vb_trust 拒绝 __pycache__ 外的 .pyc | 高（已修待复核） | 公开前写 SECURITY 说明：信任根、--standard 语义、__pycache__ 容忍、--python 由调用者信任 |
-| R10-b | TOCTOU（R10-N2） | 校验与执行分离的窗口已通过内存字节+私有副本消除；私有临时目录对同一用户进程仍可写 | 中 | 在 SECURITY 说明中写明威胁模型边界 |
+- `.github/workflows/ci.yml`
+- HANDOFF 绝对路径 scrub；SKILL description 收窄；平台能力文档措辞
+- 本清单状态表刷新（P3/R9-b/I2 等）
 
-| R11-N1 | 用户文档信任根 | 默认校验命令统一为 vb_trust；verify_manifest 仅为自检 | 中（R12 已修） | 公开树沿用 |
-| R11-N3 | 安全文档 | SECURITY.md 新增：--python/--verify 调用者信任、临时目录 ACL、TOCTOU、__pycache__、无原子性 | 中（R12 已修） | 公开树沿用 |
-| R11-N4 | 相对 --evidence | 已修（按 cwd 解析） | 低（R12 已修） | — |
-| R12-a | 公开树 | 在仓库外单独生成（不含评审/私有内容）；vendor 待 Standard v1.2.8 | 阻断公开 | 见 Standard v1.2.8 提案 |
+## 未做（需 Owner）
 
-## 已在本轮修复的平凡问题
-
-- 拆仓导致的路径/命令：`AGENTS.md`、`vibecoding/README.md` 安装命令、`TODO.md` 路径说明、`tests/test_install_skill.py` 文档串（提交 2550597）。
-- `AGENTS.md` 指向不存在的 `vendor/vibecoding-standard/VENDORED.md` → 改为 `vibecoding/vendor/VENDORED.md`（提交 2550597）。
-
-## 未做
-
-- 未改任何许可、身份、历史；未改 vendor；未做公开、Tag、Release。
+- 正式 `LICENSE`（Skill + Standard）
+- 仓库改 Public / 对外宣布
+- 提交历史邮箱重写
+- Linux/macOS 干净机复测

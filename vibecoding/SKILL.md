@@ -1,6 +1,6 @@
 ---
 name: vibecoding
-description: Apply the Vibecoding Standard v1.2.8 engineering discipline inside a software project. Use when starting or resuming development work in a repository, when a task needs verification evidence with exit codes, when initializing AGENTS.md or CLAUDE.md without overwriting existing rules, when handing off or recovering a session from repository evidence, or when the user mentions Vibecoding, 证据门禁, 会话交接, 最低工程动作集, or asks to follow the team engineering standard. Covers project identification, guarded init, task flow, evidence gates (0=PASS / 1=FAIL / 2=UNKNOWN, never report NOT_RUN as PASS) and handoff.
+description: Apply the Vibecoding Standard v1.2.8 engineering discipline when the user asks for Vibecoding / 工程纪律 / 证据门禁 / 会话交接, or explicitly invokes this skill. Use for guarded project init, evidence gates with exit codes (0=PASS / 1=FAIL / 2=UNKNOWN; never treat NOT_RUN as PASS), and handoff. Do not auto-apply to unrelated repositories solely because development work started.
 license: Proprietary. See vendor/vibecoding-standard/README.md for the standard's own terms.
 compatibility: Requires git and Python 3.10+. Offline gates only; no network access required.
 metadata:
