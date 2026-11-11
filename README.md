@@ -1,6 +1,6 @@
 # Vibecoding Skill
 
-把 Vibecoding Standard v1.2.8 的工程纪律打包成可安装的 Agent Skill（Claude Code / Codex / Cursor / WorkBuddy），提供项目初始化（`vb_init.py`）、验证证据门禁（`vb_gate.py`）与交接（`vb_handoff.py`）。状态：v0.1.0 POC。
+把 Vibecoding Standard v1.2.9 的工程纪律打包成可安装的 Agent Skill（Claude Code / Codex / Cursor / WorkBuddy），提供项目初始化（`vb_init.py`）、验证证据门禁（`vb_gate.py`）与交接（`vb_handoff.py`）。状态：v0.1.0 POC。
 
 ## 安装
 
@@ -19,7 +19,7 @@ python tools/install_skill.py --target claude-code --scope project --project <�
 python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard
 ```
 
-退出码 0（PASS）表示标准副本与固定的 v1.2.8 清单 SHA-256 一致。这是唯一的可信判据；标准副本自带的 `verify_manifest.py` 只是自洽性自检，不是信任根。
+退出码 0（PASS）表示标准副本与固定的 v1.2.9 清单 SHA-256 一致。这是唯一的可信判据；标准副本自带的 `verify_manifest.py` 只是自洽性自检，不是信任根。
 
 ## 卸载
 
@@ -31,4 +31,5 @@ python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard
 
 ## 许可
 
-**尚未授予任何许可。** [`LICENSE-DRAFT`](LICENSE-DRAFT) 只是草案，在所有者确认版权与再分发前不生效。vendored Standard 的再分发许可待确认。
+**MIT License**（Copyright (c) 2026 YunAbove）。见 [`LICENSE`](LICENSE)。  
+vendored Standard 使用同一持有人的 MIT 许可，见 [`vibecoding/vendor/vibecoding-standard/LICENSE`](vibecoding/vendor/vibecoding-standard/LICENSE)。

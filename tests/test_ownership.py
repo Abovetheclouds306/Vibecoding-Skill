@@ -115,7 +115,9 @@ class TestScenarios(Own):
 
     def test_s02c_legacy_fixture_ok_when_skill_path_contains_version(self):
         """回归钉：技能绝对路径含 STANDARD_VERSION 时，legacy 夹具仍须可授权升级（禁 NEW→OLD 污染路径）。"""
-        self.assertIn(NEW, os.path.abspath(REPO).replace("\\", "/"))
+        repo = os.path.abspath(REPO).replace("\\", "/")
+        if NEW not in repo:
+            self.skipTest("NOT_RUN: worktree path 不含 STANDARD_VERSION=%s（钉在含版本号的检出路径上才激活）" % NEW)
         self.make_legacy()
         rc, out = self.init("--apply", "--update-block")
         self.assertEqual(rc, 0, out)

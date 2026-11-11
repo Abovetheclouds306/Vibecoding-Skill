@@ -20,7 +20,7 @@
 | R4-N4 | 安装器：dest 上层分量为 Junction 时跟随写出项目外 | 自测 PASS | 6a0d17a；project scope 下项目根（不含）→dest 各分量为链接 → REFUSED rc1；user scope 的 ~ 及其上层不检查（测试禁止触碰 ~，NOT_RUN） |
 | R4-N5 | 安装器：未检查 dest 与 source 重叠 | 自测 PASS | 56c60fe；realpath 相同或互相包含 → REFUSED rc1，零写入 |
 | R4-N6 | `--json` 包装层按字面匹配 argv | 自测 PASS（pt19u 授权） | d2a83c3+9429d47+cabbf7e；`--json --help` → status ok rc0 kind=help；KeyboardInterrupt → 回滚、INTERRUPTED rc130（JSON status=interrupted）；待 R9 |
-| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | CLOSED（R11 复核；钉扎随后由 S-SKILL-01 / C-REL 升至 v1.2.8 正式） | 92d56ec+3437fcf 起引入 vb_trust；曾钉 v1.2.7（68d8a834…）与候选 `ac261bc2…`。**现行钉扎见下方 C-REL**（v1.2.8 正式，`28303d4c…`，37 文件） |
+| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | CLOSED（R11 复核；钉扎随后由 S-SKILL-01 / C-REL / OSS-1.2.9 升至 v1.2.9） | 92d56ec+3437fcf 起引入 vb_trust；曾钉 v1.2.7 / 候选 / v1.2.8 正式。**现行钉扎见下方 OSS-1.2.9**（v1.2.9 MIT，`46035ee2…`，38 文件） |
 | R4-N8 | c08407d 残留报告描述不准确 | 自测 PASS | 691f4dc；补偿先 guard 后读，guard 失败不经被替换路径读取/描述，也不再宣称「本次未改动」 |
 | R4-N9 | 项目位于盘符根目录时写入全被拒 | 自测 PASS | 608118c；`_inside` 根安全（根已以分隔符结尾时不再拼接），preflight 复用 |
 | R4-N10 | 测试与清单的小缺口（清单中 ../、绝对路径键被保留等） | 自测 PASS + DOCS | ace30ec；合并时丢弃非法清单键；新增内层 Junction 指向 dest 内用例（杀 M2）。DOCS：清单无签名/认证，仅作归属记录，伪造匹配哈希可让文件被视为「本工具所有」 |
@@ -96,6 +96,7 @@
 | IR-1 | 合入前独立复核：legacy 夹具 NEW→OLD 污染含版本号路径 | CLOSED | 假红；`49be330` 改为冻结模板×解算 vref + `split_block`/EOL + 断言；回归钉 `test_s02c` |
 | IR-2 | 合入前独立复核：CRLF 下块替换静默失败 | CLOSED | 同 `49be330` |
 | BASELINE | 私有工程基线冻结（非正式 Release） | CLOSED（Owner 签收 2026-11-11） | 签收 tip 文档基线 `1378828`（含夹具修复 `49be330`）。后由 C-REL 升至 Standard 私有正式身份 |
-| C-REL | 阶段 C：Standard v1.2.8 私有正式发版 → Skill 钉扎 | 自测 PASS | Standard `v1.2.8` @ `d9abf27`；Skill tip 见 `git log -1`；**仍非公开 OSS** |
-| OSP-1 | 开源准备审计 | IN_PROGRESS（阶段 D） | 预热：CI、HANDOFF 路径 scrub、description 收窄、OPEN_SOURCE_PREP 刷新。**阻断公开**：L1/L2/R9-f（许可与 Standard 再分发）。仍 OPEN：VENDOR-SCOPE、R11-RES-*、R9-RES-1、LNK-F、I1 |
+| C-REL | 阶段 C：Standard v1.2.8 私有正式发版 → Skill 钉扎 | 自测 PASS | Standard `v1.2.8` @ `d9abf27`；后由 OSS-1.2.9 取代为公开 MIT 钉扎 |
+| OSS-1.2.9 | Owner 确认 MIT/YunAbove/2026；Standard v1.2.9 + Skill 钉扎 + 两仓 Public | 自测 PASS | Standard tip `b1ece9f` / tag `v1.2.9`；Skill vendor 钉 `46035ee2…`；LICENSE 生效；unittest 217 OK skipped=2；公开见 `gh repo edit` |
+| OSP-1 | 开源准备审计 | CLOSED（L1/L2 解除） | Owner 确认后 MIT 授予；见 `LICENSE` / vendor `LICENSE`；公开后仍 OPEN：VENDOR-SCOPE、R11-RES-*、R9-RES-1、LNK-F、I1 |
 

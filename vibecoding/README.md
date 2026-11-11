@@ -1,6 +1,6 @@
 # vibecoding（v0.1.0 POC）— 安装与使用
 
-把 Vibecoding Standard v1.2.8 的工程纪律包装成可安装 Agent Skill。**规则只有一份**（`vendor/vibecoding-standard/`，与签收版本逐字节相同），本技能只负责流程编排与确定性门禁。
+把 Vibecoding Standard v1.2.9 的工程纪律包装成可安装 Agent Skill。**规则只有一份**（`vendor/vibecoding-standard/`，与发布版本逐字节相同），本技能只负责流程编排与确定性门禁。
 
 ## 一、安装（按平台选路径）
 
@@ -24,7 +24,7 @@ python tools/install_skill.py --target workbuddy   --scope project --project <�
 python tools/install_skill.py --target cursor      --scope project --project <项目> --dry-run
 ```
 
-安装前后，安装器都用自带的 `vibecoding/scripts/vb_trust.py`（固定 v1.2.8 清单 SHA-256）核对 `vendor/vibecoding-standard/`；源副本不符时一个文件也不写（退出码 1）。
+安装前后，安装器都用自带的 `vibecoding/scripts/vb_trust.py`（固定 v1.2.9 清单 SHA-256）核对 `vendor/vibecoding-standard/`；源副本不符时一个文件也不写（退出码 1）。
 
 **安装中途失败 / 被中断（无跨文件原子性）**：单个文件用临时文件 + 替换写入，不会半写；但多文件之间没有事务。若在第 N 个文件处失败（退出码 1）或按 Ctrl+C 中断（退出码 130），前面已写入的文件会保留、不回滚，安装清单 `.vibecoding-install.json` 可能尚未更新；输出会列出已写入的文件。恢复方法：修复原因后重跑同一条安装命令**并加 `--force`**（目标目录已存在且清单可能未更新，不加 `--force` 会判为 NEED_DECISION、退出码 2；已写入且与源一致的文件按“一致”跳过；`--force` 不覆盖用户文件或被改过的文件），或手工删除输出中列出的文件。安装器从不删除文件。
 
@@ -63,10 +63,10 @@ python <skill>/scripts/vb_handoff.py --project <项目> --show
 
 ```bash
 python scripts/vb_init.py --project <空目录> --skip-standard-check   # 冒烟（标记为未验证，不是签收声明）
-python scripts/vb_trust.py vendor/vibecoding-standard                # 标准副本 vs 固定 v1.2.8 清单（可信判据）
+python scripts/vb_trust.py vendor/vibecoding-standard                # 标准副本 vs 固定 v1.2.9 清单（可信判据）
 ```
 
-可信判据只有 `vb_trust.py`（固定清单 SHA-256）。标准副本自带的 `tools/verify_manifest.py` 只是 Standard 的自洽性自检，**不是信任根**，不能证明副本是签收版本；也不要在已安装目录里就地运行它（会生成 `__pycache__`）。安全边界见仓库根 `SECURITY.md`。
+可信判据只有 `vb_trust.py`（固定清单 SHA-256）。标准副本自带的 `tools/verify_manifest.py` 只是 Standard 的自洽性自检，**不是信任根**；也不要在已安装目录里就地运行它（会生成 `__pycache__`）。安全边界见仓库根 `SECURITY.md`。
 
 ## 五、退出码
 

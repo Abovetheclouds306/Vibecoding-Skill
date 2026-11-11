@@ -48,9 +48,9 @@ import vb_trust  # noqa: E402  R4-N7：固定哈希的可信校验器（技能�
 from datetime import datetime
 
 SKILL_VERSION = "0.1.0"
-STANDARD_VERSION = vb_trust.STANDARD_VERSION            # "1.2.8"
+STANDARD_VERSION = vb_trust.STANDARD_VERSION            # "1.2.9"
 STANDARD_SIGNOFF = vb_trust.STANDARD_SIGNOFF            # 工程候选 2e010b0
-STANDARD_RELEASE = vb_trust.STANDARD_RELEASE            # 私有正式发布 d9abf27 / v1.2.8
+STANDARD_RELEASE = vb_trust.STANDARD_RELEASE            # v1.2.9 / b1ece9f
 STANDARD_ZIP_SHA = vb_trust.STANDARD_ZIP_SHA
 
 # 旧版识别表（D-6）：只读，仅用于识别升级来源并输出 LEGACY_DETECTED；
@@ -60,6 +60,11 @@ LEGACY_IDENTITIES = {
         "standard_signoff_commit": "ce5b361cf13ae373094abe67eb9ce7a6e22ecb8f",
         "standard_release_commit": "fd9750f3e6c4c2105cf253d5f7d6494f0f373fdf",
         "standard_vendor_zip_sha256": "0ce2a06cf506904cca4e0597240d43f5e869ee9845d7b508bc83a9fd2745dd38",
+    },
+    "1.2.8": {
+        "standard_signoff_commit": "2e010b04059172b651c191bf1dbaab279c8d78be",
+        "standard_release_commit": "d9abf273ff3ee7afebf39541c7a031922e1bb5be",
+        "standard_vendor_zip_sha256": "6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df",
     },
 }
 # config.json 中参与幂等比较的稳定字段（initialized_at 保留原值）
@@ -756,6 +761,8 @@ LEGACY_STD_CLAIMS_V127 = (
 # (标准版本, 模板, 生成过该标准的工具版本, 声明模板)
 TRUSTED_GENERATION = (
     ("1.2.7", LEGACY_BLOCK_TEMPLATE_V127, ("0.1.0",), LEGACY_STD_CLAIMS_V127),
+    # v1.2.8 与现行共用 BLOCK 模板（仅 standard= 版本号不同），以便授权升级到 v1.2.9
+    ("1.2.8", BLOCK, (SKILL_VERSION,), (STD_CLAIM_TRUSTED, STD_CLAIM_SKIPPED)),
     (STANDARD_VERSION, BLOCK, (SKILL_VERSION,), (STD_CLAIM_TRUSTED, STD_CLAIM_SKIPPED)),
 )
 KNOWN_STANDARD_VERSIONS = tuple(g[0] for g in TRUSTED_GENERATION)
@@ -1015,7 +1022,7 @@ def _main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description="Vibecoding Skill 受保护初始化（默认 dry-run）",
                                  allow_abbrev=False)   # R4-N6：禁止前缀缩写（--jso/--app 等）
     ap.add_argument("--project", default=".", help="目标项目目录（默认当前目录）")
-    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；仍须通过技能自带 vb_trust 的固定 v1.2.8 清单校验，否则拒绝）")
+    ap.add_argument("--standard", help="标准副本目录（只改变读取位置；仍须通过技能自带 vb_trust 的固定 v1.2.9 清单校验，否则拒绝）")
     ap.add_argument("--apply", action="store_true", help="实际落盘；缺省为 dry-run")
     ap.add_argument("--allow-dirty", action="store_true", help="工作区脏时仍允许改 tracked 文件")
     ap.add_argument("--update-block", action="store_true", help="授权升级可证明由工具生成的陈旧受管块（AGENTS.md 标记块 / .vibecoding/AGENTS.block.md / config.json）；用户修改或来源无法证明的内容（USER_MODIFIED / USER_MODIFIED_OR_UNKNOWN）一律 rc=2 零写入，不会被覆盖")

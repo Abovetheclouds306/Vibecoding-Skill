@@ -1,20 +1,20 @@
 ---
 name: vibecoding
-description: Apply the Vibecoding Standard v1.2.8 engineering discipline when the user asks for Vibecoding / 工程纪律 / 证据门禁 / 会话交接, or explicitly invokes this skill. Use for guarded project init, evidence gates with exit codes (0=PASS / 1=FAIL / 2=UNKNOWN; never treat NOT_RUN as PASS), and handoff. Do not auto-apply to unrelated repositories solely because development work started.
-license: Proprietary. See vendor/vibecoding-standard/README.md for the standard's own terms.
+description: Apply the Vibecoding Standard v1.2.9 engineering discipline when the user asks for Vibecoding / 工程纪律 / 证据门禁 / 会话交接, or explicitly invokes this skill. Use for guarded project init, evidence gates with exit codes (0=PASS / 1=FAIL / 2=UNKNOWN; never treat NOT_RUN as PASS), and handoff. Do not auto-apply to unrelated repositories solely because development work started.
+license: MIT. See repository root LICENSE; vendored Standard has its own LICENSE under vendor/vibecoding-standard/.
 compatibility: Requires git and Python 3.10+. Offline gates only; no network access required.
 metadata:
   version: "0.1.0"
-  standard_version: "1.2.8"
+  standard_version: "1.2.9"
   standard_signoff_commit: "2e010b04059172b651c191bf1dbaab279c8d78be"
-  standard_release_commit: "d9abf273ff3ee7afebf39541c7a031922e1bb5be"
-  standard_tag: "v1.2.8"
-  standard_vendored_sha256: "6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df"
+  standard_release_commit: "b1ece9f5743d4330524da7b813f6852b7cbc75ad"
+  standard_tag: "v1.2.9"
+  standard_vendored_sha256: "ddaba6788a79f61abf570e886b515fd318d67ace87d3cce73f08204818471946"
 ---
 
 # Vibecoding Skill（v0.1.0 POC）
 
-把 Vibecoding Standard v1.2.8 的工程纪律包装成可安装技能：**项目识别 → 受保护初始化 → 标准任务流程 → 证据与退出码门禁 → 交接与恢复**。
+把 Vibecoding Standard v1.2.9 的工程纪律包装成可安装技能：**项目识别 → 受保护初始化 → 标准任务流程 → 证据与退出码门禁 → 交接与恢复**。
 
 ## 这个技能是什么，不是什么
 

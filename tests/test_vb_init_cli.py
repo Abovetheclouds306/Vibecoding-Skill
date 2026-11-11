@@ -735,7 +735,7 @@ class TestR4N7TrustedStandard(Base):
     def test_default_run_records_pinned_trust(self):
         rc, out = self.init("--apply")
         self.assertEqual(rc, 0, out)
-        self.assertEqual(self.read_cfg().get("standard_trust"), "pinned-signed-off-v1.2.8")
+        self.assertEqual(self.read_cfg().get("standard_trust"), "pinned-signed-off-v%s" % vb_init.STANDARD_VERSION)
         agents = self.read_text("AGENTS.md")
         self.assertIn("与签收版本逐字节相同", agents)
 

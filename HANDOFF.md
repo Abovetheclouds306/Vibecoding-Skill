@@ -141,25 +141,30 @@
 
 ### 范围与 tip
 - 工作树：`<worktree>/Vibecoding-Skill-v1.2.8-migration`（分支 `feat/standard-v1.2.8-migration`）。
-- **签收基线**：功能 tip `49be330` + 状态文档 `1378828`；本段签收提交合入后为最新 `main`（以 `git rev-parse origin/main` 为准）。
-- 相对旧 `main` `19f83be`：含 R12 收尾、S-SKILL-01（vendor → v1.2.8 候选 `2e010b0`）、归属加固、Windows 集成证据包、legacy 夹具修复。
+- **签收基线**：功能 tip `49be330` + 状态文档 `1378828`；后合入 OSS 预热 `13d959c`。
+- 相对旧 `main` `19f83be`：含 R12 收尾、S-SKILL-01、归属加固、Windows 集成证据包、legacy 夹具修复、阶段 C v1.2.8 钉扎。
 
-### 信任与版本（事实）
-- 权威 vendor：`vibecoding/vendor/vibecoding-standard/` = Standard **v1.2.8 私有正式发布**（发布提交 `d9abf27`，Tag `v1.2.8`；工程候选签收仍记 `2e010b0`）。
-- 信任根：`python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard` → PASS；`PINNED_MANIFEST_SHA256=28303d4c5548bf3d464c5e70c04e607da7e58645c0e3904f9c4c52202e88304c`，登记 37 文件。
-- 发布 ZIP SHA-256：`6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df`。
-- `verify_manifest.py` 仅自洽，非信任根；勿在已安装目录就地跑（会写 `__pycache__`）。
-- **公开 OSS 仍否**（`LICENSE-DRAFT` / `OPEN_SOURCE_PREP`）。
+### 信任与版本（事实 · 基线当时）
+- 当时权威 vendor = Standard **v1.2.8 私有正式**（`d9abf27` / `28303d4c…`）。现已被下方 OSS-1.2.9 取代。
+- 合入门禁：`49be330` 修复 legacy 路径污染与 CRLF；当时全套 **217 OK（skipped=1）**。
 
-### 合入门禁（阶段 A）证据
-- 阻塞根因：legacy 测试对全文 `1.2.8→1.2.7` 替换，污染含版本号的绝对路径；CRLF 下 `str.replace(block_of)` 可静默失败。
-- 修复提交：`49be330`（仅测试：`tests/test_s_skill_01.py`、`tests/test_ownership.py`）。
-- 本机：`python -B -m unittest discover -s tests -v` → **217 OK（skipped=1）**；`vb_trust` rc0。
-- 独立验收（合入前）：判定可提交后合 main；详见会话验收记录。
+### 状态标签（基线当时）
+- **Owner 私有基线签收（TODO `BASELINE`）**：**是**（2026-11-11）。
+- **Standard 私有正式身份**：是（`v1.2.8` / `d9abf27`；TODO `C-REL`）。
+- **公开 OSS（当时）**：否。
+
+## OSS-1.2.9 交接（2026-11-11；Owner 确认 MIT / YunAbove / 两仓 Public）
+
+### 范围与 tip
+- 工作树：同上；目标合入 `main`（以本轮提交 SHA 为准）。
+- Standard：`b1ece9f` / tag `v1.2.9` / ZIP SHA `ddaba6788a79f61abf570e886b515fd318d67ace87d3cce73f08204818471946`。
+
+### 信任与版本（现行）
+- 权威 vendor = Standard **v1.2.9 MIT**（发布提交 `b1ece9f`；工程候选签收仍记 `2e010b0`）。
+- 信任根：`vb_trust` → PASS；`PINNED_MANIFEST_SHA256=46035ee2c0d0063564a3215ea411f80d51ce0d18088a6cda879f525f9e9ec19e`，登记 38 文件。
+- Skill 根 `LICENSE` + vendor `LICENSE`；`LICENSE-DRAFT` 废止。
+- 自测（合入前，本机 Windows）：`vb_trust` rc0（固定清单 v1.2.9；通过 38）；`python -B -m unittest discover -s tests -v` → **217 OK（skipped=2）**。
 
 ### 状态标签
-- **私有工程基线可用（Windows 自测 + 限定集成证据）**：是。
-- **Owner 私有基线签收（TODO `BASELINE`）**：**是**（2026-11-11；文档基线 tip `1378828`，含 `49be330` 夹具修复）。范围=私有仓工程可用，**不含**公开 / tag / Release。
-- **Standard 私有正式身份（tag/ZIP）**：是（`v1.2.8` / `d9abf27`）；Skill 已钉扎（TODO `C-REL`）。
-- **公开 OSS**：否（`OPEN_SOURCE_PREP` / LICENSE 仍阻断）。
-- 下一步：可选开源准备；或业务仓按需升级到本 Skill tip。
+- **公开 OSS**：**是**（Owner 确认后授予 MIT 并改 Public）。
+- 下一步：两仓 Public 后业务仓可按需升级到本 tip；I1 / VENDOR-SCOPE 等仍 OPEN。

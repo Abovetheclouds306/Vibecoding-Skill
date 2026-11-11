@@ -79,4 +79,8 @@ git ls-tree -r <初始提交> -- . ':!PROVENANCE.md'
 
 ## S-SKILL-01 追加（2026-11-02，Vendor 迁移至 v1.2.8）
 
-上文 v1.2.7 行为历史记录，保持不变。S-SKILL-01 起曾 vendor 工程候选 `2e010b0`（清单 `ac261bc2…`）。阶段 C（2026-11-11）起整体替换为 Standard **私有正式发布** `d9abf273ff3ee7afebf39541c7a031922e1bb5be`（Tag `v1.2.8`，Tree `d21d9d1dfef7bffb2e672aea57b2da0bf09d1899`）的 `git archive` 导出，38 文件，`MANIFEST.sha256` SHA-256 `28303d4c5548bf3d464c5e70c04e607da7e58645c0e3904f9c4c52202e88304c`；发布 ZIP SHA-256 `6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df`。逐 blob 对照见 `VENDOR-PROVENANCE.md`。
+上文 v1.2.7 行为历史记录，保持不变。S-SKILL-01 起曾 vendor 工程候选 `2e010b0`（清单 `ac261bc2…`）。阶段 C（2026-11-11）起曾整体替换为 Standard **私有正式发布** `d9abf273ff3ee7afebf39541c7a031922e1bb5be`（Tag `v1.2.8`）的 `git archive` 导出。
+
+## OSS-1.2.9 追加（2026-11-11，Vendor 迁移至 v1.2.9 MIT）
+
+Owner 确认 MIT / YunAbove / 2026 后，整体替换为 Standard **公开正式发布** `b1ece9f5743d4330524da7b813f6852b7cbc75ad`（Tag `v1.2.9`，Tree `1ec8875114fe45c2da4303c1de79069866bcd1b6`）的 `git archive` 导出，39 文件，`MANIFEST.sha256` SHA-256 `46035ee2c0d0063564a3215ea411f80d51ce0d18088a6cda879f525f9e9ec19e`；发布 ZIP SHA-256 `ddaba6788a79f61abf570e886b515fd318d67ace87d3cce73f08204818471946`。逐 blob 对照见 `VENDOR-PROVENANCE.md`。

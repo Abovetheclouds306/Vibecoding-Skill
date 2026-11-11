@@ -165,7 +165,7 @@ class TestPositive(Base):
                     "AGENTS.md"):
             self.assertTrue(os.path.isfile(os.path.join(self.proj, rel)), rel)
         cfg = json.loads(self.read(".vibecoding/config.json").decode("utf-8"))
-        self.assertEqual(cfg["standard_version"], "1.2.8")
+        self.assertEqual(cfg["standard_version"], vb_init.STANDARD_VERSION)
         self.assertEqual(cfg["standard_release_commit"], vb_init.STANDARD_RELEASE)
         agents = self.read("AGENTS.md").decode("utf-8")
         self.assertEqual(agents.count("<!-- vibecoding:begin"), 1)
