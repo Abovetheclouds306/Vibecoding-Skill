@@ -3,7 +3,7 @@
 
 信任根是**本文件里固定的哈希**，不是被校验目录自带的 `tools/verify_manifest.py`：
 1. 被校验目录的 `MANIFEST.sha256` 的 SHA-256 必须等于 PINNED_MANIFEST_SHA256（Vibecoding Standard v1.2.8
-   工程候选 2e010b0 的清单；发布身份 PENDING）；
+   私有正式发布 `d9abf27` / tag `v1.2.8` 的清单）；
 2. 清单登记的每个文件 SHA-256 必须与清单一致，且不得缺失；
 3. 除 `MANIFEST.sha256` 与 `__pycache__/` 目录外，不得有未登记文件；`__pycache__` 之外的 `.pyc/.pyo`
    一律算未登记（R10-N1：无源 .pyc 可被同目录脚本导入）。`__pycache__` 不被信任也不被使用：
@@ -21,10 +21,14 @@ import re
 import sys
 
 STANDARD_VERSION = "1.2.8"
-# Owner 签收的工程候选提交（S-SKILL-01）；不是发布提交——发布身份 PENDING
+# 工程候选签收（S-SKILL-01）；私有正式发布在其上仅改版本标识与清单
 STANDARD_SIGNOFF = "2e010b04059172b651c191bf1dbaab279c8d78be"
-# vendor/vibecoding-standard/MANIFEST.sha256（git archive 2e010b0）的 SHA-256
-PINNED_MANIFEST_SHA256 = "ac261bc2bf03b5066070eddf01bf14e9ce10d0b29caaaff10dee8064e50608cd"
+STANDARD_RELEASE = "d9abf273ff3ee7afebf39541c7a031922e1bb5be"
+STANDARD_TAG = "v1.2.8"
+# 私有正式 ZIP：Vibecoding规范-v1.2.8-完整整合版.zip（GitHub asset 名可能被转写）
+STANDARD_ZIP_SHA = "6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df"
+# vendor/vibecoding-standard/MANIFEST.sha256（git archive d9abf27）的 SHA-256
+PINNED_MANIFEST_SHA256 = "28303d4c5548bf3d464c5e70c04e607da7e58645c0e3904f9c4c52202e88304c"
 PINNED_FILE_COUNT = 37          # 清单登记文件数（另加 MANIFEST.sha256 本身 = 38）
 # 旧版识别表（S-SKILL-01 D-6）：只读，仅用于输出 LEGACY_DETECTED 识别提示。
 # verify_pinned / read_verified 只认上面的固定值，**不信任**本表中的任何值（无双版本同时可信）。

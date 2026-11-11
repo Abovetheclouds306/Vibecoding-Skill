@@ -79,4 +79,4 @@ git ls-tree -r <初始提交> -- . ':!PROVENANCE.md'
 
 ## S-SKILL-01 追加（2026-11-02，Vendor 迁移至 v1.2.8）
 
-上文 v1.2.7 行为历史记录，保持不变。自分支 `feat/standard-v1.2.8-migration` 起，`vibecoding/vendor/vibecoding-standard/` 整体替换为 Standard 签收提交 `2e010b04059172b651c191bf1dbaab279c8d78be`（Tree `1e6c4e65f148353c851318a43cb98846250e8823`）的 `git archive` 导出，38 文件，`MANIFEST.sha256` SHA-256 `ac261bc2bf03b5066070eddf01bf14e9ce10d0b29caaaff10dee8064e50608cd`；发布提交 / Tag / 发布 ZIP SHA 为 PENDING。逐 blob 对照见 `VENDOR-PROVENANCE.md`。
+上文 v1.2.7 行为历史记录，保持不变。S-SKILL-01 起曾 vendor 工程候选 `2e010b0`（清单 `ac261bc2…`）。阶段 C（2026-11-11）起整体替换为 Standard **私有正式发布** `d9abf273ff3ee7afebf39541c7a031922e1bb5be`（Tag `v1.2.8`，Tree `d21d9d1dfef7bffb2e672aea57b2da0bf09d1899`）的 `git archive` 导出，38 文件，`MANIFEST.sha256` SHA-256 `28303d4c5548bf3d464c5e70c04e607da7e58645c0e3904f9c4c52202e88304c`；发布 ZIP SHA-256 `6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df`。逐 blob 对照见 `VENDOR-PROVENANCE.md`。

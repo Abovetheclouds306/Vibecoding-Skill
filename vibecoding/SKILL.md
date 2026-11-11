@@ -7,9 +7,9 @@ metadata:
   version: "0.1.0"
   standard_version: "1.2.8"
   standard_signoff_commit: "2e010b04059172b651c191bf1dbaab279c8d78be"
-  standard_release_commit: "PENDING"
-  standard_tag: "PENDING"
-  standard_vendored_sha256: "PENDING"
+  standard_release_commit: "d9abf273ff3ee7afebf39541c7a031922e1bb5be"
+  standard_tag: "v1.2.8"
+  standard_vendored_sha256: "6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df"
 ---
 
 # Vibecoding Skill（v0.1.0 POC）

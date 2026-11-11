@@ -7,58 +7,58 @@
 | 项 | 值 |
 |---|---|
 | 标准版本 | 1.2.8 |
-| 签收提交（Owner 签收的工程提交） | `2e010b04059172b651c191bf1dbaab279c8d78be` |
-| 签收 Tree | `1e6c4e65f148353c851318a43cb98846250e8823` |
-| 发布提交 / Tag | **PENDING**（尚未发布；工程候选 SHA 不得冒充发布 Commit） |
-| 来源 | `git archive 2e010b0`（从 Standard 本地仓库直接导出，非发布 ZIP） |
-| 发布 ZIP SHA-256 | **PENDING**（不以本地构建 ZIP 冒充） |
-| `MANIFEST.sha256` 的 SHA-256（可信判据） | `ac261bc2bf03b5066070eddf01bf14e9ce10d0b29caaaff10dee8064e50608cd` |
+| 签收提交（工程候选） | `2e010b04059172b651c191bf1dbaab279c8d78be` |
+| 发布提交 / Tag | `d9abf273ff3ee7afebf39541c7a031922e1bb5be` / `v1.2.8` |
+| 发布 Tree | `d21d9d1dfef7bffb2e672aea57b2da0bf09d1899` |
+| 来源 | `git archive d9abf27`（与私有正式 ZIP 同源） |
+| 发布 ZIP SHA-256 | `6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df` |
+| `MANIFEST.sha256` 的 SHA-256（可信判据） | `28303d4c5548bf3d464c5e70c04e607da7e58645c0e3904f9c4c52202e88304c` |
 | 文件数 | 38（37 登记文件 + `MANIFEST.sha256`） |
 | 位置 | `vibecoding/vendor/vibecoding-standard/` |
+| 许可 | 私有正式发布；`LICENSE-DRAFT` 未授予开源许可 |
 
-注：`vibecoding/SKILL.md` frontmatter 的 `standard_vendored_sha256` 指发布 **ZIP 包**哈希；v1.2.8 尚无发布包，值为 `PENDING`。
+注：`vibecoding/SKILL.md` frontmatter 的 `standard_vendored_sha256` 为发布 **ZIP 包**哈希。
 
 ## 信任模型（R4-N7）
 
-`vibecoding/scripts/vb_trust.py` 内置 `PINNED_MANIFEST_SHA256`；先核对 `MANIFEST.sha256` 本身等于该值，再逐文件核对清单哈希、缺失与未登记文件。它**不执行**被校验目录内的任何代码。vendor 自带的 `tools/verify_manifest.py` 只能证明“目录与其自带清单自洽”，不能证明是签收版本。
+`vibecoding/scripts/vb_trust.py` 内置 `PINNED_MANIFEST_SHA256`；先核对 `MANIFEST.sha256` 本身等于该值，再逐文件核对清单哈希、缺失与未登记文件。它**不执行**被校验目录内的任何代码。vendor 自带的 `tools/verify_manifest.py` 只能证明“目录与其自带清单自洽”，不能证明是签收/发布版本。
 
-运行时只信任上面的 v1.2.8 固定值。`vb_trust.LEGACY_MANIFEST_SHA256["1.2.7"]` 仅用于**识别**旧 vendor 以便提示升级（LEGACY_DETECTED），识别到旧版一律拒绝（退出码 1），不存在两个版本同时可信的运行路径。
+运行时只信任上面的 v1.2.8 固定值。`LEGACY_MANIFEST_SHA256["1.2.7"]` 仅用于识别旧 vendor（LEGACY_DETECTED）。
 
 ## 复核命令（在仓库根执行）
 
 ```bash
 python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard
-# 期望：== 可信校验: PASS（固定清单 v1.2.8；通过 37 / 失败 0 / 缺失 0 / 未登记 0）==，退出码 0
-git ls-tree -r HEAD -- vibecoding/vendor/vibecoding-standard            # 与下表 blob 对照
-git -C <Vibecoding-Standard> ls-tree -r 2e010b0
+git ls-tree -r HEAD -- vibecoding/vendor/vibecoding-standard
+git -C <Vibecoding-Standard> ls-tree -r d9abf27
 ```
 
-## 与签收提交 2e010b0 的 blob 对照
+## 与发布提交 d9abf27 的 blob 对照
 
-生成时结果：本仓库 38 个 / 来源 38 个；不一致 0，来源有而本仓库缺 0。
+生成时结果：本仓库 38 个；与来源不一致 0，来源缺失 0。
 
-| 路径（相对 vendor/vibecoding-standard/） | blob SHA-1 | 与 2e010b0 |
+| 路径（相对 vendor/vibecoding-standard/） | blob SHA-1 | 与发布 tip |
 |---|---|---|
 | `.gitattributes` | `45ab7847aec6bcb6abb4381917c84f68e993635c` | = |
-| `AI_PROJECT_STANDARD.md` | `31d2378484ba74aaeb9caa44e44c1e54297be678` | = |
-| `CHANGELOG.md` | `53b2cbdc5eb5819057f2201ed4a6358ebc7b6155` | = |
+| `AI_PROJECT_STANDARD.md` | `f8f0f74fcb9aaeca14ff4dfff743a0f5e236eb6c` | = |
+| `CHANGELOG.md` | `af04b1ba3acabdf9a8af701b889bd76817baf170` | = |
 | `COPYRIGHT-CHECKLIST.md` | `68137e4adc562175be5549b4d5170219c401d014` | = |
 | `LICENSE-DRAFT.md` | `ddd859cf3501f2f6bade6f56298dc8108d85df67` | = |
-| `MANIFEST.sha256` | `c1064c16c39451adbf237e9543b89df8d85cfa66` | = |
-| `README.md` | `3fa3e69c90f3d0020c96fb6e3b5982b8205160a9` | = |
+| `MANIFEST.sha256` | `1bae34f900ad8b0fe534ab9c4b3e73450325eec0` | = |
+| `README.md` | `cbc3d9ba463be0fca05fa6fdebfc110edd102212` | = |
 | `SECURITY.md` | `4671273c67454443a53553e2425ce9b05b949c2d` | = |
-| `VERSION` | `4f2ea8d7e5ad18bc2a03b9b934f6635381ec0659` | = |
-| `agents/Claude-Code.md` | `0316535275031b06fbe25c84a1b5a0a05b27dc43` | = |
-| `agents/Codex.md` | `35da6227091da43b4e2071bdd07d1c161560e46b` | = |
-| `docs/Agent接入指南.md` | `3427ffe8c39b42c5cb0c169595f323910273d6e0` | = |
+| `VERSION` | `db6fb4a9113767d50f4a5027af3423a5d383dd55` | = |
+| `agents/Claude-Code.md` | `ad93abe6e1b138b27d1314adbc05056fdd7d5a4c` | = |
+| `agents/Codex.md` | `c8ba56c17ffd41b01e37b815332829264b12a70a` | = |
+| `docs/Agent接入指南.md` | `acb88e9c7b698c9f67b0c06a95f9445f330f7a27` | = |
 | `templates/ADR-template.md.template` | `feeee2cd84837fb95e4b2f53fbc25408b0d4b19f` | = |
-| `templates/AGENTS.md.template` | `5adc32dbf5276a9901568e262500139becea53d4` | = |
+| `templates/AGENTS.md.template` | `fa00595002d492ba6571fff019b9c8533b22642a` | = |
 | `templates/CLAUDE.md.template` | `504e6eaa190f7a7ff17ad819dfb8cfb6285974cb` | = |
 | `templates/DESIGN.md.template` | `ede90875bd9468c3f0ad7f1a2da061ae40ece541` | = |
 | `templates/EVIDENCE-template.md.template` | `7457c1c197840855f093c19928348f137d5a60c1` | = |
 | `templates/HANDOFF.md.template` | `550592de2b60ce81fecb2d4046e785ab618ea0a0` | = |
 | `templates/PROGRESS.md.template` | `cdf5b9c48c303bef81060b4ab0186e39ab639da8` | = |
-| `templates/README.md` | `b82764d27a1333ceb72b667d7a2486348bcaf679` | = |
+| `templates/README.md` | `2720561ce658ce04a53ee631ba9ad1192869e77b` | = |
 | `templates/README.md.template` | `d8e7f1e8f4e9276f631ae8d84e19c87fd25530f9` | = |
 | `templates/ROADMAP.md.template` | `1b442a482c67735f5c367146a5817028584f24e1` | = |
 | `templates/SPEC-template.md.template` | `9ce4a98c978564efd55eb0f8fd481bc2bf4933af` | = |
@@ -78,14 +78,3 @@ git -C <Vibecoding-Standard> ls-tree -r 2e010b0
 | `tools/verify_manifest.py` | `4b61134bf528c300d6e6d2b9363b271a91bf84b4` | = |
 | `完整任务示例.md` | `3330508c3e8423def5fc718f78d9ace9f9c26992` | = |
 
-## 历史
-
-- v1.2.7（签收 `ce5b361…`，发布 `fd9750f…`，ZIP `0ce2a06c…`，MANIFEST `68d8a834…`，34 文件）：已被 S-SKILL-01 整体替换；身份常量仅保留于 `vb_init.LEGACY_IDENTITIES` 与 `vb_trust.LEGACY_MANIFEST_SHA256`，用于升级识别。
-
-## 有意变更：vendor 换行属性（R10 测试口径调整，Owner 批准方案 a）
-
-- 原因：v1.2.8 签收树自带 `vibecoding/vendor/vibecoding-standard/.gitattributes`（固定清单条目，SHA-256 `dad26b22b8924c9d87fb0379dc758a6c5d7ebf2986e5f6ffeeb5ed416bf3689f`，不可删改），内容为 `* text=auto eol=lf` 与 `*.zip binary`。按 git 就近优先规则，它覆盖根目录 `vibecoding/vendor/** -text`，vendor 文件的 `text` 属性由 `unset` 变为 `auto`。
-- 证据：S-SKILL-01 首轮 WSL（Ubuntu / Python 3.10.6 / git 2.34.1）`test_vb_gate.TestR10GitAttributes.test_check_attr` **FAIL**（期望 `text: unset`，实得 `text: auto` / `eol: lf`）；同一测试在 cfc083d 基线 WSL 通过。首轮 Windows 三个 Python（3.14 / 3.12 / 3.10）中该测试为 **SKIP（非 PASS）**：旧实现以 `.git` 是否为目录判定检出，worktree 中 `.git` 为文件，故跳过。
-- 决议：Owner 批准方案 a——测试改为断言字节一致性的实际保障：全部 vendor 文件 `eol: lf`、vendor 文件不含任何 CR 字节、`*.zip` 为 `binary`（`text`/`diff` unset）；根规则 `tools/install_skill.py: text auto / eol lf` 断言保留。
-- 检出判定改为 `git rev-parse --is-inside-work-tree`，worktree 中实际运行（不再 SKIP）；`check-attr -z` 避免中文路径被 quotePath 转义。
-- 实测：38 个 vendor 文件 0 个含 CR、全部可按 UTF-8 解码。残余：若上游将来加入含 CRLF 的文本文件，`text=auto` 会在提交时规范化；由固定清单 SHA-256 校验兜底发现。

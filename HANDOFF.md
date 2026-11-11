@@ -145,10 +145,11 @@
 - 相对旧 `main` `19f83be`：含 R12 收尾、S-SKILL-01（vendor → v1.2.8 候选 `2e010b0`）、归属加固、Windows 集成证据包、legacy 夹具修复。
 
 ### 信任与版本（事实）
-- 权威 vendor：`vibecoding/vendor/vibecoding-standard/` = Standard **v1.2.8** 工程候选（签收提交 `2e010b0`）。
-- 信任根：`python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard` → PASS；`PINNED_MANIFEST_SHA256=ac261bc2bf03b5066070eddf01bf14e9ce10d0b29caaaff10dee8064e50608cd`，登记 37 文件。
+- 权威 vendor：`vibecoding/vendor/vibecoding-standard/` = Standard **v1.2.8 私有正式发布**（发布提交 `d9abf27`，Tag `v1.2.8`；工程候选签收仍记 `2e010b0`）。
+- 信任根：`python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard` → PASS；`PINNED_MANIFEST_SHA256=28303d4c5548bf3d464c5e70c04e607da7e58645c0e3904f9c4c52202e88304c`，登记 37 文件。
+- 发布 ZIP SHA-256：`6f3ca956f942e219bbc3dca62ca58e570a701ffee8a1726721483f9993aa54df`。
 - `verify_manifest.py` 仅自洽，非信任根；勿在已安装目录就地跑（会写 `__pycache__`）。
-- 正式发布身份仍 **PENDING**（Tag / 发布 ZIP / `standard_vendored_sha256`）；不得把工程候选 SHA 写成已 Release。
+- **公开 OSS 仍否**（`LICENSE-DRAFT` / `OPEN_SOURCE_PREP`）。
 
 ### 合入门禁（阶段 A）证据
 - 阻塞根因：legacy 测试对全文 `1.2.8→1.2.7` 替换，污染含版本号的绝对路径；CRLF 下 `str.replace(block_of)` 可静默失败。
@@ -159,5 +160,6 @@
 ### 状态标签
 - **私有工程基线可用（Windows 自测 + 限定集成证据）**：是。
 - **Owner 私有基线签收（TODO `BASELINE`）**：**是**（2026-11-11；文档基线 tip `1378828`，含 `49be330` 夹具修复）。范围=私有仓工程可用，**不含**公开 / tag / Release。
-- **公开 / tag / Release**：否（`OPEN_SOURCE_PREP` 与正式身份 PENDING 仍在）。
-- 下一步（阶段 C 起）：Standard 正式发版身份（Tag/ZIP）就绪后再整体换 vendor；或单独启动开源准备（许可证/再分发权）。
+- **Standard 私有正式身份（tag/ZIP）**：是（`v1.2.8` / `d9abf27`）；Skill 已钉扎（TODO `C-REL`）。
+- **公开 OSS**：否（`OPEN_SOURCE_PREP` / LICENSE 仍阻断）。
+- 下一步：可选开源准备；或业务仓按需升级到本 Skill tip。

@@ -20,7 +20,7 @@
 | R4-N4 | 安装器：dest 上层分量为 Junction 时跟随写出项目外 | 自测 PASS | 6a0d17a；project scope 下项目根（不含）→dest 各分量为链接 → REFUSED rc1；user scope 的 ~ 及其上层不检查（测试禁止触碰 ~，NOT_RUN） |
 | R4-N5 | 安装器：未检查 dest 与 source 重叠 | 自测 PASS | 56c60fe；realpath 相同或互相包含 → REFUSED rc1，零写入 |
 | R4-N6 | `--json` 包装层按字面匹配 argv | 自测 PASS（pt19u 授权） | d2a83c3+9429d47+cabbf7e；`--json --help` → status ok rc0 kind=help；KeyboardInterrupt → 回滚、INTERRUPTED rc130（JSON status=interrupted）；待 R9 |
-| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | CLOSED（R11 复核；钉扎随后由 S-SKILL-01 升至 v1.2.8） | 92d56ec+3437fcf 起引入 vb_trust 固定清单；当时钉 v1.2.7（68d8a834…）。**现行钉扎见下方 S-SKILL-01 / BASELINE**（v1.2.8，`ac261bc2…`，37 文件）；旧哈希仅留在 `LEGACY_MANIFEST_SHA256` |
+| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | CLOSED（R11 复核；钉扎随后由 S-SKILL-01 / C-REL 升至 v1.2.8 正式） | 92d56ec+3437fcf 起引入 vb_trust；曾钉 v1.2.7（68d8a834…）与候选 `ac261bc2…`。**现行钉扎见下方 C-REL**（v1.2.8 正式，`28303d4c…`，37 文件） |
 | R4-N8 | c08407d 残留报告描述不准确 | 自测 PASS | 691f4dc；补偿先 guard 后读，guard 失败不经被替换路径读取/描述，也不再宣称「本次未改动」 |
 | R4-N9 | 项目位于盘符根目录时写入全被拒 | 自测 PASS | 608118c；`_inside` 根安全（根已以分隔符结尾时不再拼接），preflight 复用 |
 | R4-N10 | 测试与清单的小缺口（清单中 ../、绝对路径键被保留等） | 自测 PASS + DOCS | ace30ec；合并时丢弃非法清单键；新增内层 Junction 指向 dest 内用例（杀 M2）。DOCS：清单无签名/认证，仅作归属记录，伪造匹配哈希可让文件被视为「本工具所有」 |
@@ -91,9 +91,10 @@
 ## S-SKILL-01 / 私有基线（main @ 1378828+；Owner 签收 2026-11-11）
 | ID | 事项 | 状态 | 说明 |
 |---|---|---|---|
-| S-SKILL-01 | vendor 迁至 Standard v1.2.8 工程候选 `2e010b0`；关闭 R15-N4 A/B/C | 自测 PASS；已合 main | `aaebdde`..；`vb_trust` 钉 `PINNED_MANIFEST_SHA256=ac261bc2…`，`PINNED_FILE_COUNT=37`；发布 ZIP/Tag/`standard_vendored_sha256` 仍 **PENDING** |
+| S-SKILL-01 | vendor 迁至 Standard v1.2.8 工程候选 `2e010b0`；关闭 R15-N4 A/B/C | 自测 PASS；已合 main；后由 C-REL 升正式 | 候选期钉 `ac261bc2…`；现由 C-REL 取代 |
 | OWN-1 | 受管块归属：仅可信渲染可 `--update-block`；config path 不参与信任 | 自测 PASS | `e089fe0`、`0a84036` |
 | IR-1 | 合入前独立复核：legacy 夹具 NEW→OLD 污染含版本号路径 | CLOSED | 假红；`49be330` 改为冻结模板×解算 vref + `split_block`/EOL + 断言；回归钉 `test_s02c` |
 | IR-2 | 合入前独立复核：CRLF 下块替换静默失败 | CLOSED | 同 `49be330` |
-| BASELINE | 私有工程基线冻结（非正式 Release） | CLOSED（Owner 签收 2026-11-11） | 签收 tip 文档基线 `1378828`（含夹具修复 `49be330`）；全量 unittest 217 OK（skip 1）；`vb_trust` PASS v1.2.8；Windows 集成证据限定通过。**不是**公开 / tag / Release。仍 OPEN：VENDOR-SCOPE、OSP-1、正式身份 PENDING、R11-RES-*、R9-RES-1、LNK-F |
+| BASELINE | 私有工程基线冻结（非正式 Release） | CLOSED（Owner 签收 2026-11-11） | 签收 tip 文档基线 `1378828`（含夹具修复 `49be330`）。后由 C-REL 升至 Standard 私有正式身份 |
+| C-REL | 阶段 C：Standard v1.2.8 私有正式发版 → Skill 钉扎 | 自测 PASS（本轮） | Standard `main`/`v1.2.8` @ `d9abf27`；ZIP SHA `6f3ca956…`；Skill vendor=`git archive d9abf27`；`vb_trust` 钉 `28303d4c…`。**仍非公开 OSS**（LICENSE-DRAFT）。仍 OPEN：VENDOR-SCOPE、OSP-1、R11-RES-*、R9-RES-1、LNK-F |
 

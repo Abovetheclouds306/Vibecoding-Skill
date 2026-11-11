@@ -161,7 +161,7 @@ class TestLegacyUpgrade(Mig):
         self.assertIn("保留这一段。", self.read("AGENTS.md").decode("utf-8"))
         cfg = json.loads(self.read(".vibecoding/config.json"))
         self.assertEqual(cfg["standard_signoff_commit"], vb_init.STANDARD_SIGNOFF)
-        self.assertEqual(cfg["standard_release_commit"], "PENDING")
+        self.assertEqual(cfg["standard_release_commit"], vb_init.STANDARD_RELEASE)
         self.assertEqual(cfg["initialized_at"], "2026-10-01 00:00:00 +0800", "initialized_at 保留原值")
         snap = snapshot(self.proj)
         for extra in ((), ("--update-block",)):

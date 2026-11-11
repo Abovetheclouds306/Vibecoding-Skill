@@ -49,10 +49,9 @@ from datetime import datetime
 
 SKILL_VERSION = "0.1.0"
 STANDARD_VERSION = vb_trust.STANDARD_VERSION            # "1.2.8"
-STANDARD_SIGNOFF = vb_trust.STANDARD_SIGNOFF            # Owner 签收的工程候选 2e010b0
-# 发布身份未定（S-SKILL-01 D-7）：不得用工程候选 SHA 冒充发布提交 / 发布 ZIP。
-STANDARD_RELEASE = "PENDING"
-STANDARD_ZIP_SHA = "PENDING"
+STANDARD_SIGNOFF = vb_trust.STANDARD_SIGNOFF            # 工程候选 2e010b0
+STANDARD_RELEASE = vb_trust.STANDARD_RELEASE            # 私有正式发布 d9abf27 / v1.2.8
+STANDARD_ZIP_SHA = vb_trust.STANDARD_ZIP_SHA
 
 # 旧版识别表（D-6）：只读，仅用于识别升级来源并输出 LEGACY_DETECTED；
 # 运行时信任只来自 vb_trust 的固定值，本表中的任何值都**不被信任**。
