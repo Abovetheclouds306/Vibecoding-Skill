@@ -20,7 +20,7 @@
 | R4-N4 | 安装器：dest 上层分量为 Junction 时跟随写出项目外 | 自测 PASS | 6a0d17a；project scope 下项目根（不含）→dest 各分量为链接 → REFUSED rc1；user scope 的 ~ 及其上层不检查（测试禁止触碰 ~，NOT_RUN） |
 | R4-N5 | 安装器：未检查 dest 与 source 重叠 | 自测 PASS | 56c60fe；realpath 相同或互相包含 → REFUSED rc1，零写入 |
 | R4-N6 | `--json` 包装层按字面匹配 argv | 自测 PASS（pt19u 授权） | d2a83c3+9429d47+cabbf7e；`--json --help` → status ok rc0 kind=help；KeyboardInterrupt → 回滚、INTERRUPTED rc130（JSON status=interrupted）；待 R9 |
-| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | CLOSED（R11 复核） | 92d56ec+3437fcf；vb_trust 固定 v1.2.7 MANIFEST SHA-256（68d8a834…）并在不执行被校验目录代码的前提下逐文件比对；vb_init/vb_gate/安装器（源预检+目标复检）均改用；--skip-standard-check 标 SKIPPED，不再声明签收版本；R10 复核：vb_init/安装器 CLOSED，vb_gate 被 R10-N1（pyc）绕过，R11 修复待复核 |
+| R4-N7 | `--standard` / VB_STANDARD_HOME 可指向任意自校验目录 | CLOSED（R11 复核；钉扎随后由 S-SKILL-01 升至 v1.2.8） | 92d56ec+3437fcf 起引入 vb_trust 固定清单；当时钉 v1.2.7（68d8a834…）。**现行钉扎见下方 S-SKILL-01 / BASELINE**（v1.2.8，`ac261bc2…`，37 文件）；旧哈希仅留在 `LEGACY_MANIFEST_SHA256` |
 | R4-N8 | c08407d 残留报告描述不准确 | 自测 PASS | 691f4dc；补偿先 guard 后读，guard 失败不经被替换路径读取/描述，也不再宣称「本次未改动」 |
 | R4-N9 | 项目位于盘符根目录时写入全被拒 | 自测 PASS | 608118c；`_inside` 根安全（根已以分隔符结尾时不再拼接），preflight 复用 |
 | R4-N10 | 测试与清单的小缺口（清单中 ../、绝对路径键被保留等） | 自测 PASS + DOCS | ace30ec；合并时丢弃非法清单键；新增内层 Junction 指向 dest 内用例（杀 M2）。DOCS：清单无签名/认证，仅作归属记录，伪造匹配哈希可让文件被视为「本工具所有」 |
@@ -40,7 +40,7 @@
 | R4-N6 余项 | `--json --help` status / KeyboardInterrupt | DEFERRED（待 Owner 决定） | R7 认为 status ok 在现有枚举内，但仍属行为契约选择，不改 |
 | R4-c08407d | 对 c08407d（及本分支）的独立复核 | 已完成 R4 | R4-REPORT.md：PASS-with-findings；R5 复核 5327eb9..HEAD 待安排 |
 | VENDOR-SCOPE | vendor 范围决策（全量 vendored 还是精简） | OPEN | 需 Chris 决定 |
-| POC-PUSH | poc/vibecoding-skill-v0.1.0 与本 fix 分支均未推送远程 | OPEN | 推送需 Chris 明确批准 |
+| POC-PUSH | 私有仓 main / feat 推送 | CLOSED（2026-11-11） | `main` 与 `feat/standard-v1.2.8-migration` 已推至 `origin` @ `49be330`；正式公开 / tag / Release 仍需另批 |
 
 ## R9（独立仓库候选，开发者自测，非 Reviewer 结论）
 | ID | 事项 | 状态 | 说明 |
@@ -87,4 +87,13 @@
 | R11-N4 | 相对 --evidence 回溯/结构校验 FAIL | 自测 PASS | 按 cwd 解析为绝对路径；ev.md 与 sub/ev.md 测试 |
 | R11-N5 | 真实 HOME 防护可绕过 | 自测 PASS | 所有安装器调用经唯一入口 run_installer；默认假 HOME；--scope=user、run_argv、仅 HOME/仅 USERPROFILE 越界均拒绝；元测试禁止直接调用 |
 | R11-N6 | 测试生成 __pycache__ / 临时目录残留 | 自测 PASS | verify_manifest 以 -B 运行；测试禁写字节码；git 只读对象强制删除，残留即报错 |
+
+## S-SKILL-01 / 私有基线（main @ 49be330，2026-11-11）
+| ID | 事项 | 状态 | 说明 |
+|---|---|---|---|
+| S-SKILL-01 | vendor 迁至 Standard v1.2.8 工程候选 `2e010b0`；关闭 R15-N4 A/B/C | 自测 PASS；已合 main | `aaebdde`..；`vb_trust` 钉 `PINNED_MANIFEST_SHA256=ac261bc2…`，`PINNED_FILE_COUNT=37`；发布 ZIP/Tag/`standard_vendored_sha256` 仍 **PENDING** |
+| OWN-1 | 受管块归属：仅可信渲染可 `--update-block`；config path 不参与信任 | 自测 PASS | `e089fe0`、`0a84036` |
+| IR-1 | 合入前独立复核：legacy 夹具 NEW→OLD 污染含版本号路径 | CLOSED | 假红；`49be330` 改为冻结模板×解算 vref + `split_block`/EOL + 断言；回归钉 `test_s02c` |
+| IR-2 | 合入前独立复核：CRLF 下块替换静默失败 | CLOSED | 同 `49be330` |
+| BASELINE | 私有工程基线冻结（非正式 Release） | OPEN（待 Owner 签收） | tip=`49be330`；全量 unittest 217 OK（skip 1）；`vb_trust` PASS v1.2.8；Windows 集成证据见 `docs/evidence/2026-11-08-windows-skill-integration/`（限定通过，非签收）。仍 OPEN：VENDOR-SCOPE、OSP-1、正式身份 PENDING、R11-RES-*、R9-RES-1、LNK-F |
 

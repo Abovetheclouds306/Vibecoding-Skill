@@ -136,3 +136,27 @@
 - 自测：全套 155 OK（skip 1）；verify_manifest/vb_trust rc0；R10 argparse.pyc 复现：vb_trust rc1、vb_gate rc1 且未执行；autocrlf 克隆 vb_trust rc0、安装 rc0；变异 G1/F1a/F1b/N1a/F1f/N2a/N2b/N1b/执行被定位目录/N4/F2a/F2b/HOME 防护绕过全部被杀；新测试对 e91d7b5 代码 13 项失败（判别有效）。
 - 事故规则：`C:\Users\ADMIN\.agents\skills\vibecoding` 每次运行前后均不存在；其余真实安装目录不变。
 - 残余：TODO R11-RES-1..3、R9-RES-1。待独立 Reviewer 复核 R11。
+
+## 私有基线交接（2026-11-11；main / feat @ 49be330；非正式 Release）
+
+### 范围与 tip
+- 工作树：`F:\DOSS_Project\_worktrees\Vibecoding-Skill-v1.2.8-migration`（分支 `feat/standard-v1.2.8-migration`）。
+- **现行 tip**：`49be330`（已推 `origin/main` 与 `origin/feat/standard-v1.2.8-migration`）。
+- 相对旧 `main` `19f83be`：含 R12 收尾、S-SKILL-01（vendor → v1.2.8 候选 `2e010b0`）、归属加固、Windows 集成证据包、legacy 夹具修复。
+
+### 信任与版本（事实）
+- 权威 vendor：`vibecoding/vendor/vibecoding-standard/` = Standard **v1.2.8** 工程候选（签收提交 `2e010b0`）。
+- 信任根：`python vibecoding/scripts/vb_trust.py vibecoding/vendor/vibecoding-standard` → PASS；`PINNED_MANIFEST_SHA256=ac261bc2bf03b5066070eddf01bf14e9ce10d0b29caaaff10dee8064e50608cd`，登记 37 文件。
+- `verify_manifest.py` 仅自洽，非信任根；勿在已安装目录就地跑（会写 `__pycache__`）。
+- 正式发布身份仍 **PENDING**（Tag / 发布 ZIP / `standard_vendored_sha256`）；不得把工程候选 SHA 写成已 Release。
+
+### 合入门禁（阶段 A）证据
+- 阻塞根因：legacy 测试对全文 `1.2.8→1.2.7` 替换，污染含版本号的绝对路径；CRLF 下 `str.replace(block_of)` 可静默失败。
+- 修复提交：`49be330`（仅测试：`tests/test_s_skill_01.py`、`tests/test_ownership.py`）。
+- 本机：`python -B -m unittest discover -s tests -v` → **217 OK（skipped=1）**；`vb_trust` rc0。
+- 独立验收（合入前）：判定可提交后合 main；详见会话验收记录。
+
+### 状态标签
+- **私有工程基线可用（Windows 自测 + 限定集成证据）**：是（tip `49be330`）。
+- **Owner 正式签收 / 公开 / tag / Release**：否（TODO `BASELINE` OPEN；`OPEN_SOURCE_PREP` 阻断项仍在）。
+- 下一步（阶段 B 余下 / 阶段 C）：Owner 签收本基线；再决定 Standard 正式发版身份与是否启动开源准备。
