@@ -137,11 +137,11 @@
 - 事故规则：`C:\Users\ADMIN\.agents\skills\vibecoding` 每次运行前后均不存在；其余真实安装目录不变。
 - 残余：TODO R11-RES-1..3、R9-RES-1。待独立 Reviewer 复核 R11。
 
-## 私有基线交接（2026-11-11；main / feat @ 49be330；非正式 Release）
+## 私有基线交接（2026-11-11；Owner 已签收 BASELINE；非正式 Release）
 
 ### 范围与 tip
 - 工作树：`F:\DOSS_Project\_worktrees\Vibecoding-Skill-v1.2.8-migration`（分支 `feat/standard-v1.2.8-migration`）。
-- **现行 tip**：`49be330`（已推 `origin/main` 与 `origin/feat/standard-v1.2.8-migration`）。
+- **签收基线**：功能 tip `49be330` + 状态文档 `1378828`；本段签收提交合入后为最新 `main`（以 `git rev-parse origin/main` 为准）。
 - 相对旧 `main` `19f83be`：含 R12 收尾、S-SKILL-01（vendor → v1.2.8 候选 `2e010b0`）、归属加固、Windows 集成证据包、legacy 夹具修复。
 
 ### 信任与版本（事实）
@@ -157,6 +157,7 @@
 - 独立验收（合入前）：判定可提交后合 main；详见会话验收记录。
 
 ### 状态标签
-- **私有工程基线可用（Windows 自测 + 限定集成证据）**：是（tip `49be330`）。
-- **Owner 正式签收 / 公开 / tag / Release**：否（TODO `BASELINE` OPEN；`OPEN_SOURCE_PREP` 阻断项仍在）。
-- 下一步（阶段 B 余下 / 阶段 C）：Owner 签收本基线；再决定 Standard 正式发版身份与是否启动开源准备。
+- **私有工程基线可用（Windows 自测 + 限定集成证据）**：是。
+- **Owner 私有基线签收（TODO `BASELINE`）**：**是**（2026-11-11；文档基线 tip `1378828`，含 `49be330` 夹具修复）。范围=私有仓工程可用，**不含**公开 / tag / Release。
+- **公开 / tag / Release**：否（`OPEN_SOURCE_PREP` 与正式身份 PENDING 仍在）。
+- 下一步（阶段 C 起）：Standard 正式发版身份（Tag/ZIP）就绪后再整体换 vendor；或单独启动开源准备（许可证/再分发权）。
